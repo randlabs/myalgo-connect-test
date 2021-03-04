@@ -1,26 +1,30 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { Component, ReactNode } from 'react';
+import { Button } from 'reactstrap';
+import PrismCode from './components/code/Code';
 import './App.css';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+import logo from './assets/images/MyAlgo.svg'
+
+class App extends Component<{}> {
+    render(): ReactNode {
+        const code = `
+        const foo = 'foo';
+const bar = 'bar';
+console.log(foo + bar);
+        `;
+        return (
+            <div className="app">
+                <img src={logo} className="myalgo-logo" alt="MyAlgo logo" />
+                <PrismCode
+                    code={code}
+                    language="js"
+                />
+                <Button color="danger">
+                    Danger!
+                </Button>
+            </div>
+        );
+    }
 }
 
 export default App;
