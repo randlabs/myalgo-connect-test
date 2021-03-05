@@ -5,6 +5,7 @@ import './App.scss';
 
 import Connect from './components/connect/Connect';
 import Payment from './components/payment/Payment';
+import PaymentRekeyed from './components/payment-rekeyed/payment-rekeyed';
 //import logo from './assets/images/MyAlgo.svg';
 
 interface IAppState {
@@ -47,6 +48,10 @@ class App extends Component<{}, IAppState> {
                     onComplete={this.onCompleteConnect}
                 />
                 <Payment
+                    connection={this.connection}
+                    accounts={accounts}
+                />
+                <PaymentRekeyed
                     connection={this.connection}
                     accounts={accounts}
                 />

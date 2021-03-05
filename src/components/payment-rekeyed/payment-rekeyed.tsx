@@ -20,6 +20,9 @@ interface IPaymentState {
     from: Accounts|null;
     isOpenDropdownFrom: boolean;
 
+    fromRekeyed: Address;
+    validFrom: boolean;
+
     to: Address;
     validTo: boolean;
 
@@ -46,7 +49,8 @@ const code = `
     const txn = {
         ...params,
         type: 'pay',
-        from: accounts[0].address,
+        signer: accounts[0].address
+        from: rekeyedAccount,
         to:  '...',
         amount: 1000000, // 1 algo
         note: new Uint8Array(Buffer.from('...')),
@@ -64,7 +68,7 @@ const code = `
 `;
 
 
-class Payment extends Component<IPaymentProps, IPaymentState> {
+class PaymentRekeyed extends Component<IPaymentProps, IPaymentState> {
     private addressMask: Array<RegExp>;
 
     constructor(props: IPaymentProps) {
@@ -76,6 +80,9 @@ class Payment extends Component<IPaymentProps, IPaymentState> {
             accounts,
             from: accounts.length ? accounts[0] : null,
             isOpenDropdownFrom: false,
+
+            fromRekeyed: "",
+            validFrom: false,
 
             to: "",
             validTo: false,
@@ -99,6 +106,7 @@ class Payment extends Component<IPaymentProps, IPaymentState> {
         this.onToggleFrom = this.onToggleFrom.bind(this);
         this.onFromSelected = this.onFromSelected.bind(this);
         this.onChangeTo = this.onChangeTo.bind(this);
+        this.onChangeFrom = this.onChangeFrom.bind(this);
         this.onChangeAmount = this.onChangeAmount.bind(this);
         this.onChangeNote = this.onChangeNote.bind(this);
         this.onSubmitPaymentTx = this.onSubmitPaymentTx.bind(this);
@@ -148,6 +156,22 @@ class Payment extends Component<IPaymentProps, IPaymentState> {
 		});
 	}
 
+    async onChangeFrom(event: ChangeEvent<HTMLInputElement>): Promise<void> {
+		event.persist();
+
+        const from = event.target.value;
+        let validFrom = true;
+
+        if (!validateAddress(from)) {
+			validFrom = false;
+		}
+    
+		this.setState({
+			fromRekeyed: from,
+            validFrom
+		});
+	}
+
     onChangeAmount(values: NumberFormatValues): void {
 		this.setState({
 			amount: values.value,
@@ -173,7 +197,7 @@ class Payment extends Component<IPaymentProps, IPaymentState> {
     async onSubmitPaymentTx(event: FormEvent<HTMLFormElement>): Promise<void> {
 		event.preventDefault();
         const { connection } = this.props;
-        const { from, to, amount, noteb64 } = this.state;
+        const { from, to, amount, noteb64, fromRekeyed } = this.state;
     
         try {
             const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io', '');
@@ -183,7 +207,8 @@ class Payment extends Component<IPaymentProps, IPaymentState> {
                 fee: 1000,
                 flatFee: true,
                 type: "pay",
-                from: from ? from.address : "",
+                signer: from ? from.address : "",
+                from: fromRekeyed, 
                 to,
                 amount: fromDecimal(amount ? amount : "0", 6),
                 note: noteb64,
@@ -205,6 +230,8 @@ class Payment extends Component<IPaymentProps, IPaymentState> {
             this.setState({
                 response,
                 to: "",
+                fromRekeyed: "",
+                validFrom: false,
                 validTo: false,
                 amount: "",
                 validAmount: false,
@@ -219,14 +246,14 @@ class Payment extends Component<IPaymentProps, IPaymentState> {
 
     render(): ReactNode {
         const { isOpenDropdownFrom, accounts, from, to, validTo,
-            amount, validAmount, note, validNote, response } = this.state;
+            amount, validAmount, note, validNote, response, fromRekeyed, validFrom } = this.state;
 
         return (
             <Container className="mt-5 pb-5">
                 <Row className="mt-4">
                     <Col xs="12" sm="6">
-                        <h1>Payment transaction</h1>
-                        <p>Make a payment transaction (with note)</p>
+                        <h1>Payment transaction with a rekeyed address</h1>
+                        <p>Make a payment transaction with a rekeyed account</p>
                     </Col>
                 </Row>
                 <Row>
@@ -238,7 +265,7 @@ class Payment extends Component<IPaymentProps, IPaymentState> {
                             {accounts.length
                                 ? <FormGroup className="align-items-center">
                                     <Label className="tx-label">
-                                        From
+                                        Signer
                                     </Label>
                                     <Dropdown
                                         className="from-dropdown"
@@ -269,6 +296,21 @@ class Payment extends Component<IPaymentProps, IPaymentState> {
                                 </FormGroup>
                                 : null
                             }
+                            <FormGroup className="align-items-center">
+                                <Label className="tx-label">
+                                    From
+                                </Label>
+                                <MaskedInput
+                                    className="form-control tx-input"
+                                    mask={this.addressMask}
+                                    value={fromRekeyed}
+                                    placeholder=""
+                                    placeholderChar=" "
+                                    guide={false}
+                                    onChange={this.onChangeFrom}
+                                    required
+                                />
+						    </FormGroup>
                             <FormGroup className="align-items-center">
                                 <Label className="tx-label">
                                     To
@@ -316,7 +358,7 @@ class Payment extends Component<IPaymentProps, IPaymentState> {
                                 color="primary"
                                 block
                                 type="submit"
-                                disabled={!validTo || !validAmount}
+                                disabled={!validTo || !validAmount || !validFrom}
                             >
                                 Submit
                             </Button>
@@ -346,4 +388,4 @@ class Payment extends Component<IPaymentProps, IPaymentState> {
     }
 }
 
-export default Payment;
+export default PaymentRekeyed;
