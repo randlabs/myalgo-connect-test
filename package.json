@@ -11,11 +11,15 @@
     "@types/node": "^12.20.4",
     "@types/react": "^17.0.2",
     "@types/react-dom": "^17.0.1",
+    "algosdk": "^1.8.1",
     "bootstrap": "^4.6.0",
+    "node-sass": "^5.0.0",
     "prismjs": "^1.23.0",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
+    "react-number-format": "^4.4.4",
     "react-scripts": "4.0.3",
+    "react-text-mask": "^5.4.3",
     "reactstrap": "^8.9.0",
     "typescript": "^4.2.2",
     "web-vitals": "^1.1.0"
@@ -45,6 +49,7 @@
     ]
   },
   "devDependencies": {
-    "@types/prismjs": "^1.16.3"
+    "@types/prismjs": "^1.16.3",
+    "@types/react-text-mask": "^5.4.6"
   }
 }
