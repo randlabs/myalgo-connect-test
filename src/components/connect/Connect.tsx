@@ -66,7 +66,7 @@ class Connect extends Component<IConnectProps, IConnectState> {
         const { response } = this.state;
 
         return (
-            <Container className="pb-5">
+            <Container className="mt-5 pb-5">
                 <Row className="mt-4">
                     <Col xs="12" sm="6">
                         <h1>Connect</h1>

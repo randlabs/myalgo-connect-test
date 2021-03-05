@@ -103,9 +103,47 @@ h1 {
   }
 }
 
-.myalgo-logo {
-  height: 5vmin;
-  pointer-events: none;
+.top-toolbar {
+  position: relative;
+  top: 0;
+  height: 70px;
+  z-index: 2;
+  background-color: #fff;
+  -webkit-box-shadow: 0 1.5px 3px 0 rgba(0, 0, 0, 0.16);
+  -moz-box-shadow: 0 1.5px 3px 0 rgba(0, 0, 0, 0.16);
+  box-shadow: 0 1.5px 3px 0 rgba(0, 0, 0, 0.16);
+}
+
+.top-toolbar-row {
+  align-items: center;
+  vertical-align: middle;
+  height: 100%;
+}
+
+.top-toolbar-col {
+  text-align: center;
+  justify-content: center;
+}
+
+#my-algo-app {
+  .toptoolbar-logo {
+      height: 40px !important;
+  }
+  display: inline-block;
+  .toptoolbar-dropdown-logo {
+      height: 18px !important;
+  }
+  .toptoolbar-dropdown-text {
+      position: relative;
+      text-decoration: none;
+      color: #245ec7;
+      font-weight: 400;
+      font-size: 1.5rem !important;
+      &.in-toolbar{
+          margin-left: 15px;
+          font-weight: 500;
+      }
+  }
 }
 
 .response-cont {
@@ -161,5 +199,31 @@ h1 {
   &.note {
     resize: none;
     height: 130px !important;
+  }
+}
+
+.footer {
+  height: 60px;
+  position: relative;
+  background-color: #ededed;
+  font-size: 0.85rem;
+  color: #a7a7a7;
+}
+
+.footer-row {
+  height: 100%;
+  align-items: center;
+}
+
+.footer-col {
+  justify-content: center;
+  text-align: center;
+}
+
+.footer-link {
+  color: #a7a7a7;
+  cursor: pointer;
+  &:hover, &:focus, &:active {
+      color: #a7a7a7;
   }
 }
