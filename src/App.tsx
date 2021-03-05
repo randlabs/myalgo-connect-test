@@ -6,6 +6,7 @@ import './App.scss';
 import Connect from './components/connect/Connect';
 import Payment from './components/payment/Payment';
 import PaymentRekeyed from './components/payment-rekeyed/payment-rekeyed';
+import MultisigPayment from './components/multisig-payment/multisig-payment';
 //import logo from './assets/images/MyAlgo.svg';
 
 interface IAppState {
@@ -22,7 +23,7 @@ class App extends Component<{}, IAppState> {
             accounts: []
         }
 
-        this.connection = new MyAlgo();
+        this.connection = new MyAlgo("https://wallet.localhost.com:3000");
 
         this.onCompleteConnect = this.onCompleteConnect.bind(this);
     }
@@ -52,6 +53,10 @@ class App extends Component<{}, IAppState> {
                     accounts={accounts}
                 />
                 <PaymentRekeyed
+                    connection={this.connection}
+                    accounts={accounts}
+                />
+                <MultisigPayment
                     connection={this.connection}
                     accounts={accounts}
                 />
