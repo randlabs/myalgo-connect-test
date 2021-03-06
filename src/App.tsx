@@ -9,6 +9,7 @@ import Connect from './components/connect/Connect';
 import Payment from './components/payment/Payment';
 import PaymentRekeyed from './components/payment-rekeyed/payment-rekeyed';
 import MultisigPayment from './components/multisig-payment/multisig-payment';
+import SignTeal from './components/signteal/signteal';
 //import logo from './assets/images/MyAlgo.svg';
 import Footer from './components/footer/Footer';
 
@@ -27,7 +28,7 @@ class App extends Component<{}, IAppState> {
             accounts: []
         }
 
-        this.connection = new MyAlgo("https://wallet.localhost.com:3000");
+        this.connection = new MyAlgo("https://dev.myalgo.com/bridge");
 
         this.onCompleteConnect = this.onCompleteConnect.bind(this);
     }
@@ -51,18 +52,27 @@ class App extends Component<{}, IAppState> {
                                 connection={this.connection}
                                 onComplete={this.onCompleteConnect}
                             />
-                            <Payment
-                                connection={this.connection}
-                                accounts={accounts}
-                            />
-                            <PaymentRekeyed
-                                connection={this.connection}
-                                accounts={accounts}
-                            />
-                            <MultisigPayment
-                                connection={this.connection}
-                                accounts={accounts}
-                            />
+                            {
+                                accounts.length > 0
+                                ? <Fragment>
+                                    <Payment
+                                    connection={this.connection}
+                                    accounts={accounts}
+                                    />
+                                    <PaymentRekeyed
+                                        connection={this.connection}
+                                        accounts={accounts}
+                                    />
+                                    <MultisigPayment
+                                        connection={this.connection}
+                                        accounts={accounts}
+                                    />
+                                    <SignTeal
+                                        connection={this.connection}
+                                        accounts={accounts}
+                                    />
+                                </Fragment> : null
+                            }
                         </Col>
                     </Row>
                 </Container>

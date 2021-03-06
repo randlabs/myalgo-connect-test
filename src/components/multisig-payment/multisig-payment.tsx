@@ -20,14 +20,14 @@ const msigParams: any = {
     addrs: [],
 };
 
-interface IPaymentProps {
+interface IMSigPaymentProps {
     connection: MyAlgo;
     accounts: Accounts[];
 }
 
-interface IPaymentState {
+interface IMSigPaymentState {
     accounts: Accounts[];
-    from: Accounts|null;
+    from: Accounts;
     isOpenDropdownFrom: boolean;
 
     msigAddr: Address;
@@ -85,10 +85,10 @@ const code = `
 `;
 
 
-class MultisigPayment extends Component<IPaymentProps, IPaymentState> {
+class MultisigPayment extends Component<IMSigPaymentProps, IMSigPaymentState> {
     private addressMask: Array<RegExp>;
 
-    constructor(props: IPaymentProps) {
+    constructor(props: IMSigPaymentProps) {
 		super(props);
 
         const { accounts } = this.props;
@@ -97,7 +97,7 @@ class MultisigPayment extends Component<IPaymentProps, IPaymentState> {
 
 		this.state = {
             accounts,
-            from: accounts.length ? accounts[0] : null,
+            from: accounts[0],
             isOpenDropdownFrom: false,
 
             msigAddr: "",
@@ -129,7 +129,7 @@ class MultisigPayment extends Component<IPaymentProps, IPaymentState> {
         this.onSubmitPaymentTx = this.onSubmitPaymentTx.bind(this);
 	}
 
-    componentDidUpdate(prevProps: IPaymentProps): void {
+    componentDidUpdate(prevProps: IMSigPaymentProps): void {
 		if (this.props.accounts !== prevProps.accounts) {
 			const accounts = this.props.accounts;
             msigParams.addrs = [
@@ -218,7 +218,7 @@ class MultisigPayment extends Component<IPaymentProps, IPaymentState> {
                 fee: 1000,
                 flatFee: true,
                 type: "pay",
-                signer: from ? from.address : "",
+                signer: from.address,
                 from: algosdk.multisigAddress(msigParams),
                 to,
                 amount: fromDecimal(amount ? amount : "0", 6),
@@ -295,57 +295,52 @@ class MultisigPayment extends Component<IPaymentProps, IPaymentState> {
                             id="payment-tx"
                             onSubmit={this.onSubmitPaymentTx}
                         >
-                            {accounts.length
-                                ? <FormGroup className="align-items-center">
-                                    <Label className="tx-label">
-                                        From
-                                    </Label>
-                                    <Dropdown
-                                        className="from-dropdown"
-                                        isOpen={isOpenDropdownFrom}
-                                        toggle={this.onToggleFrom}
-                                    >
-                                        <DropdownToggle caret>
-                                            <span className="text-ellipsis">
-                                                {from?.address}
-                                            </span>
-                                        </DropdownToggle>
-                                        <DropdownMenu>
-                                            {accounts.map((account): ReactElement => {
-                                                return (
-                                                    <DropdownItem
-                                                        onClick={() => this.onFromSelected(account)}
-                                                        key={`account-${account.address}`}
-                                                    >
-                                                        <span className="text-ellipsis">
-                                                            {account.address}
-                                                        </span>
-                                                    </DropdownItem>
-                                                );
-                                            })
-                                            }
-                                        </DropdownMenu>
-                                    </Dropdown>
-                                </FormGroup>
-                                : null
-                            }
-                            {accounts.length
-                                ? <FormGroup className="align-items-center">
-                                    <Label className="tx-label">
-                                        Multisig Address
-                                    </Label>
-                                    <MaskedInput
-                                        className="form-control tx-input"
-                                        mask={this.addressMask}
-                                        value={msigAddr}
-                                        placeholder=""
-                                        placeholderChar=" "
-                                        guide={false}
-                                        disabled={true}
-                                        required
-                                    />
-                                </FormGroup> : null
-                            }
+                            <FormGroup className="align-items-center">
+                                <Label className="tx-label">
+                                    From
+                                </Label>
+                                <Dropdown
+                                    className="from-dropdown"
+                                    isOpen={isOpenDropdownFrom}
+                                    toggle={this.onToggleFrom}
+                                >
+                                    <DropdownToggle caret>
+                                        <span className="text-ellipsis">
+                                            {from.address}
+                                        </span>
+                                    </DropdownToggle>
+                                    <DropdownMenu>
+                                        {accounts.map((account): ReactElement => {
+                                            return (
+                                                <DropdownItem
+                                                    onClick={() => this.onFromSelected(account)}
+                                                    key={`account-${account.address}`}
+                                                >
+                                                    <span className="text-ellipsis">
+                                                        {account.address}
+                                                    </span>
+                                                </DropdownItem>
+                                            );
+                                        })
+                                        }
+                                    </DropdownMenu>
+                                </Dropdown>
+                            </FormGroup>
+                            <FormGroup className="align-items-center">
+                                <Label className="tx-label">
+                                    Multisig Address
+                                </Label>
+                                <MaskedInput
+                                    className="form-control tx-input"
+                                    mask={this.addressMask}
+                                    value={msigAddr}
+                                    placeholder=""
+                                    placeholderChar=" "
+                                    guide={false}
+                                    disabled={true}
+                                    required
+                                />
+                            </FormGroup>
                             <FormGroup className="align-items-center">
                                 <Label className="tx-label">
                                     To

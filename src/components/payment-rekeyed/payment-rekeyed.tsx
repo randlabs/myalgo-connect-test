@@ -10,14 +10,14 @@ import { fromDecimal, validateAddress } from '../../utils/algorand';
 import PrismCode from '../code/Code';
 
 
-interface IPaymentProps {
+interface IRekeyPaymentProps {
     connection: MyAlgo;
     accounts: Accounts[];
 }
 
-interface IPaymentState {
+interface IRekeyPaymentState {
     accounts: Accounts[];
-    from: Accounts|null;
+    from: Accounts;
     isOpenDropdownFrom: boolean;
 
     fromRekeyed: Address;
@@ -57,7 +57,6 @@ const code = `
     };
   
     const signedTxn = await myAlgoWallet.signTransaction(txn);
-    console.log(signedTxn);
 
     await algodClient.sendRawTransaction(signedTxn.blob).do();
   }
@@ -68,17 +67,17 @@ const code = `
 `;
 
 
-class PaymentRekeyed extends Component<IPaymentProps, IPaymentState> {
+class PaymentRekeyed extends Component<IRekeyPaymentProps, IRekeyPaymentState> {
     private addressMask: Array<RegExp>;
 
-    constructor(props: IPaymentProps) {
+    constructor(props: IRekeyPaymentProps) {
 		super(props);
 
         const { accounts } = this.props;
 
 		this.state = {
             accounts,
-            from: accounts.length ? accounts[0] : null,
+            from: accounts[0],
             isOpenDropdownFrom: false,
 
             fromRekeyed: "",
@@ -112,7 +111,7 @@ class PaymentRekeyed extends Component<IPaymentProps, IPaymentState> {
         this.onSubmitPaymentTx = this.onSubmitPaymentTx.bind(this);
 	}
 
-    componentDidUpdate(prevProps: IPaymentProps): void {
+    componentDidUpdate(prevProps: IRekeyPaymentProps): void {
 		if (this.props.accounts !== prevProps.accounts) {
 			const accounts = this.props.accounts;
 			this.setState({
@@ -207,7 +206,7 @@ class PaymentRekeyed extends Component<IPaymentProps, IPaymentState> {
                 fee: 1000,
                 flatFee: true,
                 type: "pay",
-                signer: from ? from.address : "",
+                signer: from.address,
                 from: fromRekeyed, 
                 to,
                 amount: fromDecimal(amount ? amount : "0", 6),
@@ -262,40 +261,37 @@ class PaymentRekeyed extends Component<IPaymentProps, IPaymentState> {
                             id="payment-tx"
                             onSubmit={this.onSubmitPaymentTx}
                         >
-                            {accounts.length
-                                ? <FormGroup className="align-items-center">
-                                    <Label className="tx-label">
-                                        Signer
-                                    </Label>
-                                    <Dropdown
-                                        className="from-dropdown"
-                                        isOpen={isOpenDropdownFrom}
-                                        toggle={this.onToggleFrom}
-                                    >
-                                        <DropdownToggle caret>
-                                            <span className="text-ellipsis">
-                                                {from?.address}
-                                            </span>
-                                        </DropdownToggle>
-                                        <DropdownMenu>
-                                            {accounts.map((account): ReactElement => {
-                                                return (
-                                                    <DropdownItem
-                                                        onClick={() => this.onFromSelected(account)}
-                                                        key={`account-${account.address}`}
-                                                    >
-                                                        <span className="text-ellipsis">
-                                                            {account.address}
-                                                        </span>
-                                                    </DropdownItem>
-                                                );
-                                            })
-                                            }
-                                        </DropdownMenu>
-                                    </Dropdown>
-                                </FormGroup>
-                                : null
-                            }
+                            <FormGroup className="align-items-center">
+                                <Label className="tx-label">
+                                    Signer
+                                </Label>
+                                <Dropdown
+                                    className="from-dropdown"
+                                    isOpen={isOpenDropdownFrom}
+                                    toggle={this.onToggleFrom}
+                                >
+                                    <DropdownToggle caret>
+                                        <span className="text-ellipsis">
+                                            {from.address}
+                                        </span>
+                                    </DropdownToggle>
+                                    <DropdownMenu>
+                                        {accounts.map((account): ReactElement => {
+                                            return (
+                                                <DropdownItem
+                                                    onClick={() => this.onFromSelected(account)}
+                                                    key={`account-${account.address}`}
+                                                >
+                                                    <span className="text-ellipsis">
+                                                        {account.address}
+                                                    </span>
+                                                </DropdownItem>
+                                            );
+                                        })
+                                        }
+                                    </DropdownMenu>
+                                </Dropdown>
+                            </FormGroup>
                             <FormGroup className="align-items-center">
                                 <Label className="tx-label">
                                     From

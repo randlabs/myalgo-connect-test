@@ -1,4 +1,4 @@
-import React, { Component, ReactNode, ChangeEvent, FormEvent, ReactElement } from 'react';
+import React, { Component, ReactNode, ChangeEvent, FormEvent, ReactElement, Fragment } from 'react';
 import { Container, Row, Col, Form, FormGroup, Label, Input,
     Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button } from 'reactstrap';
 import MyAlgo, { Accounts, Address, SignedTx, PaymentTxn } from '@randlabs/myalgo-connect';
@@ -10,12 +10,12 @@ import { fromDecimal, validateAddress } from '../../utils/algorand';
 import PrismCode from '../code/Code';
 
 
-interface IPaymentProps {
+interface ISignTealProps {
     connection: MyAlgo;
     accounts: Accounts[];
 }
 
-interface IPaymentState {
+interface ISignTealState {
     accounts: Accounts[];
     from: Accounts;
     isOpenDropdownFrom: boolean;
@@ -52,8 +52,13 @@ const code = `
         note: new Uint8Array(Buffer.from('...')),
     };
   
-    const signedTxn = await myAlgoWallet.signTransaction(txn);
-    console.log(signedTxn);
+    const logic = algosdk.makeLogicSig(new Uint8Array(Buffer.from("ASABACYBA3BheTEIIg8xDygSEA==", "base64")));
+
+    const signedTeal = await connection.signLogicSig(logic.program, from.address);
+
+    logic.sig = signedTeal;
+
+    const signedTxn = algosdk.signLogicSigTransaction(txn, logic)
 
     await algodClient.sendRawTransaction(signedTxn.blob).do();
   }
@@ -64,10 +69,10 @@ const code = `
 `;
 
 
-class Payment extends Component<IPaymentProps, IPaymentState> {
+class Payment extends Component<ISignTealProps, ISignTealState> {
     private addressMask: Array<RegExp>;
 
-    constructor(props: IPaymentProps) {
+    constructor(props: ISignTealProps) {
 		super(props);
 
         const { accounts } = this.props;
@@ -104,7 +109,7 @@ class Payment extends Component<IPaymentProps, IPaymentState> {
         this.onSubmitPaymentTx = this.onSubmitPaymentTx.bind(this);
 	}
 
-    componentDidUpdate(prevProps: IPaymentProps): void {
+    componentDidUpdate(prevProps: ISignTealProps): void {
 		if (this.props.accounts !== prevProps.accounts) {
 			const accounts = this.props.accounts;
 			this.setState({
@@ -195,12 +200,16 @@ class Payment extends Component<IPaymentProps, IPaymentState> {
 
             if (!txn.note || txn.note.length === 0)
                 delete txn.note;
-          
-            const signedTxn = await connection.signTransaction(txn);
 
-            let response;
-            if (!Array.isArray(signedTxn))
-                response = await algodClient.sendRawTransaction(signedTxn.blob).do();
+            const lsig = algosdk.makeLogicSig(new Uint8Array(Buffer.from("ASABACYBA3BheTEIIg8xDygSEA==", "base64")));
+
+            const signedTeal = await connection.signLogicSig(lsig.logic, from.address);
+
+            lsig.sig = signedTeal;
+
+            const signedTxn = algosdk.signLogicSigTransaction(txn, lsig)
+
+            const response = await algodClient.sendRawTransaction(signedTxn.blob).do();
 
             this.setState({
                 response,
@@ -235,6 +244,22 @@ class Payment extends Component<IPaymentProps, IPaymentState> {
                             id="payment-tx"
                             onSubmit={this.onSubmitPaymentTx}
                         >
+                            <Fragment>
+                                <text>
+                                   {
+                                       `
+                                       //version 1
+                                       txn Amount
+                                       int 0
+                                       >=
+                                       txn Type
+                                       byte "pay"
+                                       ==
+                                       &&
+                                       `
+                                   }
+                                </text>
+                            </Fragment>
                             <FormGroup className="align-items-center">
                                 <Label className="tx-label">
                                     From
