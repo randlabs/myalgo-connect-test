@@ -1,7 +1,7 @@
-import React, { Component, ReactNode, ChangeEvent, FormEvent, ReactElement, Fragment } from 'react';
+import React, { Component, ReactNode, ChangeEvent, FormEvent, ReactElement } from 'react';
 import { Container, Row, Col, Form, FormGroup, Label, Input,
     Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button } from 'reactstrap';
-import MyAlgo, { Accounts, Address, SignedTx, PaymentTxn } from '@randlabs/myalgo-connect';
+import MyAlgo, { Accounts, Address, SignedTx, AssetTxn } from '@randlabs/myalgo-connect';
 import MaskedInput from 'react-text-mask';
 import NumberFormat, { NumberFormatValues } from 'react-number-format';
 import algosdk from 'algosdk';
@@ -10,18 +10,21 @@ import { fromDecimal, validateAddress } from '../../utils/algorand';
 import PrismCode from '../code/Code';
 
 
-interface ISignTealProps {
+interface IASATransferProps {
     connection: MyAlgo;
     accounts: Accounts[];
 }
 
-interface ISignTealState {
+interface IASATransferState {
     accounts: Accounts[];
     from: Accounts;
     isOpenDropdownFrom: boolean;
 
     to: Address;
     validTo: boolean;
+
+    assetIndex: number;
+    validAssetIndex: boolean;
 
     amount: string;
     validAmount: boolean;
@@ -45,20 +48,16 @@ const code = `
       
     const txn = {
         ...params,
-        type: 'pay',
+        type: 'axfer',
         from: accounts[0].address,
         to:  '...',
+        assetIndex: assetIndex,
         amount: 1000000, // 1 algo
         note: new Uint8Array(Buffer.from('...')),
     };
   
-    const logic = algosdk.makeLogicSig(new Uint8Array(Buffer.from("ASABACYBA3BheTEIIg8xDygSEA==", "base64")));
-
-    const signedTeal = await connection.signLogicSig(logic.program, from.address);
-
-    logic.sig = signedTeal;
-
-    const signedTxn = algosdk.signLogicSigTransaction(txn, logic)
+    const signedTxn = await myAlgoWallet.signTransaction(txn);
+    console.log(signedTxn);
 
     await algodClient.sendRawTransaction(signedTxn.blob).do();
   }
@@ -69,10 +68,10 @@ const code = `
 `;
 
 
-class Payment extends Component<ISignTealProps, ISignTealState> {
+class ASATransfer extends Component<IASATransferProps, IASATransferState> {
     private addressMask: Array<RegExp>;
 
-    constructor(props: ISignTealProps) {
+    constructor(props: IASATransferProps) {
 		super(props);
 
         const { accounts } = this.props;
@@ -81,6 +80,9 @@ class Payment extends Component<ISignTealProps, ISignTealState> {
             accounts,
             from: accounts[0],
             isOpenDropdownFrom: false,
+
+            assetIndex: 0,
+            validAssetIndex: false,
 
             to: "",
             validTo: false,
@@ -105,11 +107,12 @@ class Payment extends Component<ISignTealProps, ISignTealState> {
         this.onFromSelected = this.onFromSelected.bind(this);
         this.onChangeTo = this.onChangeTo.bind(this);
         this.onChangeAmount = this.onChangeAmount.bind(this);
+        this.onChangeAssetIndex = this.onChangeAssetIndex.bind(this);
         this.onChangeNote = this.onChangeNote.bind(this);
         this.onSubmitPaymentTx = this.onSubmitPaymentTx.bind(this);
 	}
 
-    componentDidUpdate(prevProps: ISignTealProps): void {
+    componentDidUpdate(prevProps: IASATransferProps): void {
 		if (this.props.accounts !== prevProps.accounts) {
 			const accounts = this.props.accounts;
 			this.setState({
@@ -153,6 +156,13 @@ class Payment extends Component<ISignTealProps, ISignTealState> {
 		});
 	}
 
+    onChangeAssetIndex(values: NumberFormatValues): void {
+		this.setState({
+			assetIndex: Number.parseInt(values.value),
+            validAssetIndex: typeof values !== "undefined" && Number.isInteger(Number.parseInt(values.value))
+		});
+	}
+
     onChangeAmount(values: NumberFormatValues): void {
 		this.setState({
 			amount: values.value,
@@ -178,16 +188,17 @@ class Payment extends Component<ISignTealProps, ISignTealState> {
     async onSubmitPaymentTx(event: FormEvent<HTMLFormElement>): Promise<void> {
 		event.preventDefault();
         const { connection } = this.props;
-        const { from, to, amount, noteb64 } = this.state;
+        const { from, to, amount, noteb64, assetIndex } = this.state;
     
         try {
             const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io', '');
             const params = await algodClient.getTransactionParams().do();
 
-            const txn: PaymentTxn = {
+            const txn: AssetTxn = {
                 fee: 1000,
                 flatFee: true,
-                type: "pay",
+                type: "axfer",
+                assetIndex: assetIndex,
                 from: from.address,
                 to,
                 amount: fromDecimal(amount ? amount : "0", 6),
@@ -200,16 +211,12 @@ class Payment extends Component<ISignTealProps, ISignTealState> {
 
             if (!txn.note || txn.note.length === 0)
                 delete txn.note;
+          
+            const signedTxn = await connection.signTransaction(txn);
 
-            const lsig = algosdk.makeLogicSig(new Uint8Array(Buffer.from("ASABACYBA3BheTEIIg8xDygSEA==", "base64")));
-
-            const signedTeal = await connection.signLogicSig(lsig.logic, from.address);
-
-            lsig.sig = signedTeal;
-
-            const signedTxn = algosdk.signLogicSigTransaction(txn, lsig)
-
-            const response = await algodClient.sendRawTransaction(signedTxn.blob).do();
+            let response;
+            if (!Array.isArray(signedTxn))
+                response = await algodClient.sendRawTransaction(signedTxn.blob).do();
 
             this.setState({
                 response,
@@ -220,10 +227,6 @@ class Payment extends Component<ISignTealProps, ISignTealState> {
                 note: "",
                 validNote: false
             });
-
-            for (let i = 0; i < lsig.sig.length; i++) {
-                lsig.sig[i] = 0;
-            }
           }
           catch(err) {
             console.error(err); 
@@ -231,15 +234,15 @@ class Payment extends Component<ISignTealProps, ISignTealState> {
     }
 
     render(): ReactNode {
-        const { isOpenDropdownFrom, accounts, from, to, validTo,
-            amount, validAmount, note, validNote, response } = this.state;
+        const { isOpenDropdownFrom, accounts, from, to, validTo, assetIndex,
+            amount, validAmount, note, validAssetIndex, response } = this.state;
 
         return (
             <Container className="mt-5 pb-5">
                 <Row className="mt-4">
                     <Col xs="12" sm="6">
-                        <h1>Payment transaction with teal</h1>
-                        <p>Make a payment transaction and send it by a signed stateless teal</p>
+                        <h1>Payment transaction</h1>
+                        <p>Make a payment transaction (with note)</p>
                     </Col>
                 </Row>
                 <Row>
@@ -248,22 +251,6 @@ class Payment extends Component<ISignTealProps, ISignTealState> {
                             id="payment-tx"
                             onSubmit={this.onSubmitPaymentTx}
                         >
-                            <Fragment>
-                                <text>
-                                   {
-                                       `
-                                       //version 1
-                                       txn Amount
-                                       int 0
-                                       >=
-                                       txn Type
-                                       byte "pay"
-                                       ==
-                                       &&
-                                       `
-                                   }
-                                </text>
-                            </Fragment>
                             <FormGroup className="align-items-center">
                                 <Label className="tx-label">
                                     From
@@ -325,7 +312,20 @@ class Payment extends Component<ISignTealProps, ISignTealState> {
                                     allowNegative={false}
                                     isNumericString={true}
                                 />
-						</FormGroup>
+						    </FormGroup>
+                            <FormGroup className="align-items-center">
+                               <Label className="tx-label">
+                                    Asset Index
+                                </Label>
+                                <NumberFormat
+                                    value={assetIndex}
+                                    onValueChange={this.onChangeAssetIndex}
+                                    className="form-control tx-input"
+                                    placeholder="0"
+                                    allowNegative={false}
+                                    isNumericString={true}
+                                />
+						    </FormGroup>
                             <FormGroup>
                                 <Label className="tx-label">
                                     Note
@@ -342,7 +342,7 @@ class Payment extends Component<ISignTealProps, ISignTealState> {
                                 color="primary"
                                 block
                                 type="submit"
-                                disabled={!validTo || !validAmount}
+                                disabled={!validTo || !validAmount || !validAssetIndex}
                             >
                                 Submit
                             </Button>
@@ -372,4 +372,4 @@ class Payment extends Component<ISignTealProps, ISignTealState> {
     }
 }
 
-export default Payment;
+export default ASATransfer;

@@ -9,6 +9,7 @@ import Connect from './components/connect/Connect';
 import Payment from './components/payment/Payment';
 import PaymentRekeyed from './components/payment-rekeyed/payment-rekeyed';
 import MultisigPayment from './components/multisig-payment/multisig-payment';
+import ASATransfer from './components/asatransfer/asatransfer';
 import SignTeal from './components/signteal/signteal';
 //import logo from './assets/images/MyAlgo.svg';
 import Footer from './components/footer/Footer';
@@ -68,6 +69,10 @@ class App extends Component<{}, IAppState> {
                                         accounts={accounts}
                                     />
                                     <SignTeal
+                                        connection={this.connection}
+                                        accounts={accounts}
+                                    />
+                                    <ASATransfer
                                         connection={this.connection}
                                         accounts={accounts}
                                     />
