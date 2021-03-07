@@ -241,8 +241,8 @@ class ASATransfer extends Component<IASATransferProps, IASATransferState> {
             <Container className="mt-5 pb-5">
                 <Row className="mt-4">
                     <Col xs="12" sm="6">
-                        <h1>Payment transaction</h1>
-                        <p>Make a payment transaction (with note)</p>
+                        <h1>ASA transfer transaction</h1>
+                        <p>Make an Algorand ASA transfer transaction (with note)</p>
                     </Col>
                 </Row>
                 <Row>
