@@ -26,31 +26,21 @@ interface IApplOptInState {
 
 const code = `
 (async () => {
-  try {
-    const algodClient = new algosdk.Algodv2(
-        '',
-        'https://api.testnet.algoexplorer.io',
-        ''
-    );
+    const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io','');
     const params = await algodClient.getTransactionParams().do();
       
     const txn = {
         ...params,
         type: "appl",
         appIndex: 14241387,
-        appOnComplete: 1,
+        appOnComplete: 1, // OnApplicationComplete.OptInOC
         from: accounts[0].address,
         note: new Uint8Array(Buffer.from('...')),
     };
   
     const signedTxn = await myAlgoWallet.signTransaction(txn);
-    console.log(signedTxn);
 
     await algodClient.sendRawTransaction(signedTxn.blob).do();
-  }
-  catch(err) {
-    console.error(err); 
-  }
 })();
 `;
 

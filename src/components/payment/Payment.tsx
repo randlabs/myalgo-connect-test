@@ -295,7 +295,7 @@ class Payment extends Component<IPaymentProps, IPaymentState> {
                                     allowNegative={false}
                                     isNumericString={true}
                                 />
-						</FormGroup>
+						    </FormGroup>
                             <FormGroup>
                                 <Label className="tx-label">
                                     Note

@@ -12,6 +12,7 @@ import MultisigPayment from './components/multisig-payment/multisig-payment';
 import ASATransfer from './components/asatransfer/asatransfer';
 import SignTeal from './components/signteal/signteal';
 import ApplOptIn from './components/applOptin/applOptin';
+import ApplCallNoOp from "./components/applCallNoOp/applCallNoOp";
 import ApplCloseOut from './components/applCloseOut/applCloseOut';
 //import logo from './assets/images/MyAlgo.svg';
 import Footer from './components/footer/Footer';
@@ -59,8 +60,8 @@ class App extends Component<{}, IAppState> {
                                 accounts.length > 0
                                 ? <Fragment>
                                     <Payment
-                                    connection={this.connection}
-                                    accounts={accounts}
+                                        connection={this.connection}
+                                        accounts={accounts}
                                     />
                                     <PaymentRekeyed
                                         connection={this.connection}
@@ -79,6 +80,10 @@ class App extends Component<{}, IAppState> {
                                         accounts={accounts}
                                     />
                                     <ApplOptIn
+                                        connection={this.connection}
+                                        accounts={accounts}
+                                    />
+                                    <ApplCallNoOp
                                         connection={this.connection}
                                         accounts={accounts}
                                     />
