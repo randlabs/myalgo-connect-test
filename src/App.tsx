@@ -32,7 +32,7 @@ class App extends Component<{}, IAppState> {
             accounts: []
         }
 
-        this.connection = new MyAlgo("https://dev.myalgo.com/bridge");
+        this.connection = new MyAlgo();
 
         this.onCompleteConnect = this.onCompleteConnect.bind(this);
     }
