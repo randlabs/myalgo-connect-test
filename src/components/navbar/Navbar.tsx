@@ -1,7 +1,7 @@
 import React, { Component, ReactNode } from 'react';
 import { Container, Row, Col } from 'reactstrap';
 
-import logo from '../../assets/images/MyAlgo.svg';
+import logo from '../../assets/images/MyAlgoConnect.png';
 
 
 class Navbar extends Component {
@@ -14,9 +14,6 @@ class Navbar extends Component {
 					>
 						<div id="my-algo-app">
                             <img className="toptoolbar-logo" src={logo} alt="App Logo" />
-                            <span className="toptoolbar-dropdown-text in-toolbar">
-                                My Algo Connect
-                            </span>
                         </div>
 					</Col>
 				</Row>
