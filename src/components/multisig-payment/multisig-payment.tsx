@@ -93,14 +93,17 @@ class MultisigPayment extends Component<IMSigPaymentProps, IMSigPaymentState> {
 
         const { accounts } = this.props;
 
-
+        msigParams.addrs = [
+            secretKey.addr,
+            accounts[0].address
+        ];
 
 		this.state = {
             accounts,
             from: accounts[0],
             isOpenDropdownFrom: false,
 
-            msigAddr: "",
+            msigAddr: algosdk.multisigAddress(msigParams),
 
             to: "",
             validTo: false,
