@@ -36,11 +36,7 @@ interface IPaymentState {
 const code = `
 (async () => {
   try {
-    const algodClient = new algosdk.Algodv2(
-        '',
-        'https://api.testnet.algoexplorer.io',
-        ''
-    );
+    const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io', '');
     const params = await algodClient.getTransactionParams().do();
       
     const txn = {
