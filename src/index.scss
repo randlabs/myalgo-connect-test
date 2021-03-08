@@ -106,9 +106,10 @@ h1 {
 .top-toolbar {
   position: relative;
   top: 0;
-  height: 70px;
+  height: 80px;
   z-index: 2;
-  background-color: #fff;
+  background-image: url("./assets/images/NavbarBackground.jpg");
+  background-repeat: repeat;
   -webkit-box-shadow: 0 1.5px 3px 0 rgba(0, 0, 0, 0.16);
   -moz-box-shadow: 0 1.5px 3px 0 rgba(0, 0, 0, 0.16);
   box-shadow: 0 1.5px 3px 0 rgba(0, 0, 0, 0.16);
@@ -127,7 +128,7 @@ h1 {
 
 #my-algo-app {
   .toptoolbar-logo {
-      height: 40px !important;
+      height: 50px !important;
   }
   display: inline-block;
   .toptoolbar-dropdown-logo {
