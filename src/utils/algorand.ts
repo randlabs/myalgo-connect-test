@@ -6,7 +6,7 @@ export function fromDecimal(value: string|number, decimal: number = 0): number {
 		value = parseFloat(value) || 0;
 	}
 	const precisionNumber = decimal > 6 ? Math.pow(10, decimal) : 10000;
-	return ( ( (value * precisionNumber) * (Math.pow(10, decimal) ) ) / precisionNumber );
+	return Math.trunc(( ( (value * precisionNumber) * (Math.pow(10, decimal) ) ) / precisionNumber ));
 }
 
 export function validateAddress(address: string): boolean {
