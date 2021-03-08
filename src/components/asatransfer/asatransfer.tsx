@@ -52,7 +52,7 @@ const code = `
         from: accounts[0].address,
         to:  '...',
         assetIndex: assetIndex,
-        amount: 1000000, // 1 algo
+        amount: 1000000,
         note: new Uint8Array(Buffer.from('...')),
     };
   
@@ -193,6 +193,7 @@ class ASATransfer extends Component<IASATransferProps, IASATransferState> {
         try {
             const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io', '');
             const params = await algodClient.getTransactionParams().do();
+            const asset = await algodClient.getAssetByID(assetIndex).do();
 
             const txn: AssetTxn = {
                 fee: 1000,
@@ -201,7 +202,7 @@ class ASATransfer extends Component<IASATransferProps, IASATransferState> {
                 assetIndex: assetIndex,
                 from: from.address,
                 to,
-                amount: fromDecimal(amount ? amount : "0", 6),
+                amount: fromDecimal(amount ? amount : "0", asset.params.decimals),
                 note: noteb64,
                 firstRound: params.firstRound,
                 lastRound: params.lastRound,
