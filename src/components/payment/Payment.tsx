@@ -174,7 +174,6 @@ class Payment extends Component<IPaymentProps, IPaymentState> {
 		event.preventDefault();
         const { connection } = this.props;
         const { from, to, amount, noteb64 } = this.state;
-    
         try {
             const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io', '');
             const params = await algodClient.getTransactionParams().do();
@@ -211,10 +210,10 @@ class Payment extends Component<IPaymentProps, IPaymentState> {
                 note: "",
                 validNote: false
             });
-          }
-          catch(err) {
-            console.error(err); 
-          }
+        }
+        catch(err) {
+            this.setState({ response: err.message, });
+        }
     }
 
     render(): ReactNode {

@@ -271,10 +271,10 @@ class MultisigPayment extends Component<IMSigPaymentProps, IMSigPaymentState> {
                 note: "",
                 validNote: false
             });
-          }
-          catch(err) {
-            console.error(err); 
-          }
+        }
+        catch(err) {
+            this.setState({ response: err.message, });
+        }
     }
 
     render(): ReactNode {

@@ -1,7 +1,7 @@
-import React, { Component, ReactNode, ChangeEvent, FormEvent, ReactElement, Fragment } from 'react';
+import React, { Component, ReactNode, ChangeEvent, FormEvent, ReactElement } from 'react';
 import { Container, Row, Col, Form, FormGroup, Label, Input,
     Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button } from 'reactstrap';
-import MyAlgo, { Accounts, Address, SignedTx, PaymentTxn } from '@randlabs/myalgo-connect';
+import MyAlgo, { Accounts, Address, PaymentTxn } from '@randlabs/myalgo-connect';
 import MaskedInput from 'react-text-mask';
 import NumberFormat, { NumberFormatValues } from 'react-number-format';
 import algosdk from 'algosdk';
@@ -52,11 +52,9 @@ const code = `
         note: new Uint8Array(Buffer.from('...')),
     };
   
-    const logic = algosdk.makeLogicSig(new Uint8Array(Buffer.from("ASABACYBA3BheTEIIg8xDygSEA==", "base64")));
+    const logic = algosdk.makeLogicSig(new Uint8Array(Buffer.from(compiledTeal, "base64")));
 
-    const signedTeal = await connection.signLogicSig(logic.program, from.address);
-
-    logic.sig = signedTeal;
+    logic.sig = await connection.signLogicSig(logic.program, from.address);
 
     const signedTxn = algosdk.signLogicSigTransaction(txn, logic)
 
@@ -67,6 +65,25 @@ const code = `
   }
 })();
 `;
+
+const statelessTeal = 
+`
+txn Amount
+int 0
+>=
+txn Fee
+int 1000
+==
+&&
+txn Type
+byte "pay"
+==
+txn TxID
+byte b32 $REPLACE_FOR_TXID
+==
+&&
+&&
+`
 
 
 class Payment extends Component<ISignTealProps, ISignTealState> {
@@ -201,13 +218,17 @@ class Payment extends Component<ISignTealProps, ISignTealState> {
             if (!txn.note || txn.note.length === 0)
                 delete txn.note;
 
-            const lsig = algosdk.makeLogicSig(new Uint8Array(Buffer.from("ASABACYBA3BheTEIIg8xDygSEA==", "base64")));
+            // Calculate txn hash
+            const txHash = (new algosdk.Transaction(txn)).txID();
 
-            const signedTeal = await connection.signLogicSig(lsig.logic, from.address);
+            // Compile teal
+            const compiledTeal = await algodClient.compile(statelessTeal.replace("$REPLACE_FOR_TXID", `${txHash}`)).do();
 
-            lsig.sig = signedTeal;
+            const lsig = algosdk.makeLogicSig(new Uint8Array(Buffer.from(compiledTeal.result, "base64")));
 
-            const signedTxn = algosdk.signLogicSigTransaction(txn, lsig)
+            lsig.sig = await connection.signLogicSig(lsig.logic, from.address);
+
+            const signedTxn = algosdk.signLogicSigTransaction(txn, lsig);
 
             const response = await algodClient.sendRawTransaction(signedTxn.blob).do();
 
@@ -220,14 +241,10 @@ class Payment extends Component<ISignTealProps, ISignTealState> {
                 note: "",
                 validNote: false
             });
-
-            for (let i = 0; i < lsig.sig.length; i++) {
-                lsig.sig[i] = 0;
-            }
-          }
-          catch(err) {
-            console.error(err); 
-          }
+        }
+        catch(err) {
+            this.setState({ response: err.message, });
+        }
     }
 
     render(): ReactNode {
@@ -248,22 +265,6 @@ class Payment extends Component<ISignTealProps, ISignTealState> {
                             id="payment-tx"
                             onSubmit={this.onSubmitPaymentTx}
                         >
-                            <Fragment>
-                                <text>
-                                   {
-                                       `
-                                       //version 1
-                                       txn Amount
-                                       int 0
-                                       >=
-                                       txn Type
-                                       byte "pay"
-                                       ==
-                                       &&
-                                       `
-                                   }
-                                </text>
-                            </Fragment>
                             <FormGroup className="align-items-center">
                                 <Label className="tx-label">
                                     From

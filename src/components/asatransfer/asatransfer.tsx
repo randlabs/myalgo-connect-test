@@ -189,7 +189,7 @@ class ASATransfer extends Component<IASATransferProps, IASATransferState> {
 		event.preventDefault();
         const { connection } = this.props;
         const { from, to, amount, noteb64, assetIndex } = this.state;
-    
+
         try {
             const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io', '');
             const params = await algodClient.getTransactionParams().do();
@@ -227,10 +227,14 @@ class ASATransfer extends Component<IASATransferProps, IASATransferState> {
                 note: "",
                 validNote: false
             });
+
           }
           catch(err) {
-            console.error(err); 
-          }
+            this.setState({
+                response: err.message,
+            });
+        }
+
     }
 
     render(): ReactNode {
