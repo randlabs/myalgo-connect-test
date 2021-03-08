@@ -63,10 +63,10 @@ class App extends Component<{}, IAppState> {
                                         connection={this.connection}
                                         accounts={accounts}
                                     />
-                                    <PaymentRekeyed
+                                    {/* <PaymentRekeyed
                                         connection={this.connection}
                                         accounts={accounts}
-                                    />
+                                    /> */}
                                     <MultisigPayment
                                         connection={this.connection}
                                         accounts={accounts}
