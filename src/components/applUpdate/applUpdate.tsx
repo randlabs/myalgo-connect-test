@@ -1,69 +1,54 @@
 import React, { Component, ReactNode, ChangeEvent, FormEvent, ReactElement } from 'react';
 import { Container, Row, Col, Form, FormGroup, Label, Input,
     Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button } from 'reactstrap';
-import MyAlgo, { Accounts, Address, SignedTx, PaymentTxn } from '@randlabs/myalgo-connect';
-import MaskedInput from 'react-text-mask';
-import NumberFormat, { NumberFormatValues } from 'react-number-format';
+import MyAlgo, { Accounts, UpdateApplTxn } from '@randlabs/myalgo-connect';
 import algosdk from 'algosdk';
-
-import { fromDecimal, validateAddress } from '../../utils/algorand';
 import PrismCode from '../code/Code';
+import NumberFormat, { NumberFormatValues } from 'react-number-format';
 
 
-interface IPaymentProps {
+interface IApplCreateProps {
     connection: MyAlgo;
     accounts: Accounts[];
 }
 
-interface IPaymentState {
+interface IApplCreateState {
     accounts: Accounts[];
     from: Accounts;
     isOpenDropdownFrom: boolean;
-
-    to: Address;
-    validTo: boolean;
-
-    amount: string;
-    validAmount: boolean;
-
-    note: string;
-    validNote: boolean;
-
-	noteb64: Uint8Array;
     response: any;
+    appIndex: number;
 }
 
 const code = `
 (async () => {
-  try {
-    const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io', '');
+    const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io','');
     const params = await algodClient.getTransactionParams().do();
-      
+
     const txn = {
         ...params,
-        type: 'pay',
+        fee: 1000,
+        flatFee: true,
+        type: "appl",
         from: accounts[0].address,
-        to:  '...',
-        amount: 1000000, // 1 algo
         note: new Uint8Array(Buffer.from('...')),
+        appOnComplete: 4, 
+        appIndex: appIndex,
+        appApprovalProgram: new Uint8Array(0),
+        appClearProgram: new Uint8Array(0),
+        appArgs: [ new Uint8Array(Buffer.from(from.address)) ]
     };
   
     const signedTxn = await myAlgoWallet.signTransaction(txn);
-    console.log(signedTxn);
 
     await algodClient.sendRawTransaction(signedTxn.blob).do();
-  }
-  catch(err) {
-    console.error(err); 
-  }
 })();
 `;
 
 
-class Payment extends Component<IPaymentProps, IPaymentState> {
-    private addressMask: Array<RegExp>;
+class ApplCreate extends Component<IApplCreateProps, IApplCreateState> {
 
-    constructor(props: IPaymentProps) {
+    constructor(props: IApplCreateProps) {
 		super(props);
 
         const { accounts } = this.props;
@@ -72,35 +57,18 @@ class Payment extends Component<IPaymentProps, IPaymentState> {
             accounts,
             from: accounts[0],
             isOpenDropdownFrom: false,
-
-            to: "",
-            validTo: false,
-
-            amount: "",
-            validAmount: false,
-
-            note: "",
-            validNote: false,
-
-            noteb64: new Uint8Array(),
-			response: null
+			response: null,
+            appIndex: 0,
 		};
-
-        this.addressMask = [];
-		for (let i = 58; i > 0; i--) {
-			this.addressMask.push(/[A-Z0-9]/iu);
-		}
 
         this.onClearResponse = this.onClearResponse.bind(this);
         this.onToggleFrom = this.onToggleFrom.bind(this);
         this.onFromSelected = this.onFromSelected.bind(this);
-        this.onChangeTo = this.onChangeTo.bind(this);
-        this.onChangeAmount = this.onChangeAmount.bind(this);
-        this.onChangeNote = this.onChangeNote.bind(this);
-        this.onSubmitPaymentTx = this.onSubmitPaymentTx.bind(this);
+        this.onSubmitUpdateAppl = this.onSubmitUpdateAppl.bind(this);
+        this.onChangeAppIndex = this.onChangeAppIndex.bind(this);
 	}
 
-    componentDidUpdate(prevProps: IPaymentProps): void {
+    componentDidUpdate(prevProps: IApplCreateProps): void {
 		if (this.props.accounts !== prevProps.accounts) {
 			const accounts = this.props.accounts;
 			this.setState({
@@ -110,6 +78,11 @@ class Payment extends Component<IPaymentProps, IPaymentState> {
 		}
 	}
 
+    onChangeAppIndex(values: NumberFormatValues): void {
+		this.setState({
+			appIndex: parseInt(values.value),
+		});
+	}
     onClearResponse(): void {
         this.setState({
 			response: null
@@ -128,64 +101,31 @@ class Payment extends Component<IPaymentProps, IPaymentState> {
 		});
 	}
 
-    async onChangeTo(event: ChangeEvent<HTMLInputElement>): Promise<void> {
-		event.persist();
-
-        const to = event.target.value;
-        let validTo = true;
-
-        if (!validateAddress(to)) {
-			validTo = false;
-		}
-    
-		this.setState({
-			to,
-            validTo
-		});
-	}
-
-    onChangeAmount(values: NumberFormatValues): void {
-		this.setState({
-			amount: values.value,
-            validAmount: typeof values.floatValue !== "undefined" && values.floatValue > 0
-		});
-	}
-
-    onChangeNote(event: ChangeEvent<HTMLInputElement>): void {
-        const note = event.target.value;
-        let noteb64;
-
-		if (note) {
-			noteb64 = new Uint8Array(Buffer.from(note, "ascii"));
-		}
-
-		this.setState({
-			note,
-            validNote: note.length > 0,
-			noteb64: typeof noteb64 !== "undefined" ? noteb64 : new Uint8Array()
-		});
-	}
-
-    async onSubmitPaymentTx(event: FormEvent<HTMLFormElement>): Promise<void> {
+    async onSubmitUpdateAppl(event: FormEvent<HTMLFormElement>): Promise<void> {
 		event.preventDefault();
         const { connection } = this.props;
-        const { from, to, amount, noteb64 } = this.state;
+        const { from, appIndex } = this.state;
         try {
             const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io', '');
             const params = await algodClient.getTransactionParams().do();
 
-            const txn: PaymentTxn = {
+            const approvalProgram = Buffer.from("AiAGAAEFBAIDJgIHQ3JlYXRvcgZFc2Nyb3ciMRgSQAAtIzEZEkAAQyIxGRJAACskMRkSQAA4JTEZEkAAPCEEMRkSIQUxGRIRQABAQgA7KDEAZyk2GgBnQgAxMRsiEkAALDEbIxJAAD5CAB5CAB0oZDEAEkEAE0IAEihkMQASQQAIKTYaAGdCAAIiQyNDMgQhBBIzARAjEhAzAQgjDzMBBylkEhAQQzIEIQQSMwEQIxIQMwEAKWQSMwAAKGQSEBBD", "base64");
+            const clearProgram = Buffer.from("AiABASJD", "base64");
+
+            const txn: UpdateApplTxn = {
                 fee: 1000,
                 flatFee: true,
-                type: "pay",
+                type: "appl",
                 from: from.address,
-                to,
-                amount: fromDecimal(amount ? amount : "0", 6),
-                note: noteb64,
+                appOnComplete: 4, 
+                appIndex: appIndex,
                 firstRound: params.firstRound,
                 lastRound: params.lastRound,
                 genesisHash: params.genesisHash,
                 genesisID: params.genesisID,
+                appApprovalProgram: new Uint8Array(approvalProgram),
+                appClearProgram: new Uint8Array(clearProgram),
+                appArgs: [ new Uint8Array(Buffer.from(from.address)) ]
             };
 
             if (!txn.note || txn.note.length === 0)
@@ -193,16 +133,13 @@ class Payment extends Component<IPaymentProps, IPaymentState> {
           
             const signedTxn = await connection.signTransaction(txn);
 
-            const response = await algodClient.sendRawTransaction(signedTxn.blob).do();
+            let response;
+            if (!Array.isArray(signedTxn))
+                response = await algodClient.sendRawTransaction(signedTxn.blob).do();
 
             this.setState({
                 response,
-                to: "",
-                validTo: false,
-                amount: "",
-                validAmount: false,
-                note: "",
-                validNote: false
+
             });
         }
         catch(err) {
@@ -211,22 +148,21 @@ class Payment extends Component<IPaymentProps, IPaymentState> {
     }
 
     render(): ReactNode {
-        const { isOpenDropdownFrom, accounts, from, to, validTo,
-            amount, validAmount, note, validNote, response } = this.state;
+        const { isOpenDropdownFrom, accounts, from, response, appIndex } = this.state;
 
         return (
             <Container className="mt-5 pb-5">
                 <Row className="mt-4">
                     <Col xs="12" sm="6">
-                        <h1>Payment transaction</h1>
-                        <p>Make a payment transaction (with note)</p>
+                        <h1>Application Create transaction</h1>
+                        <p>Make an appl create transaction</p>
                     </Col>
                 </Row>
                 <Row>
                     <Col xs="12" lg="6">
                         <Form
                             id="payment-tx"
-                            onSubmit={this.onSubmitPaymentTx}
+                            onSubmit={this.onSubmitUpdateAppl}
                         >
                             <FormGroup className="align-items-center">
                                 <Label className="tx-label">
@@ -260,53 +196,23 @@ class Payment extends Component<IPaymentProps, IPaymentState> {
                                 </Dropdown>
                             </FormGroup>
                             <FormGroup className="align-items-center">
-                                <Label className="tx-label">
-                                    To
-                                </Label>
-                                <MaskedInput
-                                    className="form-control tx-input"
-                                    mask={this.addressMask}
-                                    value={to}
-                                    placeholder=""
-                                    placeholderChar=" "
-                                    guide={false}
-                                    onChange={this.onChangeTo}
-                                    required
-                                />
-						    </FormGroup>
-                            <FormGroup className="align-items-center">
                                <Label className="tx-label">
-                                    Amount
+                                    AppIndex
                                 </Label>
                                 <NumberFormat
-                                    value={amount}
-                                    onValueChange={this.onChangeAmount}
+                                    value={appIndex}
+                                    onValueChange={this.onChangeAppIndex}
                                     className="form-control tx-input"
-                                    placeholder="0.0"
-                                    thousandSeparator={","}
-                                    decimalSeparator={"."}
-                                    decimalScale={6}
+                                    placeholder="0"
+                                    decimalScale={0}
                                     allowNegative={false}
                                     isNumericString={true}
                                 />
 						    </FormGroup>
-                            <FormGroup>
-                                <Label className="tx-label">
-                                    Note
-                                </Label>
-                                <Input
-                                    className="tx-input note"
-                                    type="textarea"
-                                    placeholder="Note"
-                                    value={note}
-                                    onChange={this.onChangeNote}
-                                />
-                            </FormGroup>
                             <Button
                                 color="primary"
                                 block
                                 type="submit"
-                                disabled={!validTo || !validAmount}
                             >
                                 Submit
                             </Button>
@@ -336,4 +242,4 @@ class Payment extends Component<IPaymentProps, IPaymentState> {
     }
 }
 
-export default Payment;
+export default ApplCreate;

@@ -49,7 +49,7 @@ class Connect extends Component<IConnectProps, IConnectState> {
         try {
             const { connection, onComplete } = this.props;
             
-            const accounts = await connection.connect();
+            const accounts = await connection.connect({ shouldSelectOneAccount: true });
 
             this.setState({
                 response: accounts

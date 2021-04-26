@@ -1,6 +1,6 @@
 import React, { Component, Fragment, ReactNode } from 'react';
 import { Container, Row, Col } from 'reactstrap';
-import MyAlgo, { Accounts } from '@randlabs/myalgo-connect';
+import MyAlgoConnect, { Accounts } from '@randlabs/myalgo-connect';
 
 import './App.scss';
 
@@ -14,6 +14,8 @@ import SignTeal from './components/signteal/signteal';
 import ApplOptIn from './components/applOptin/applOptin';
 import ApplCallNoOp from "./components/applCallNoOp/applCallNoOp";
 import ApplCloseOut from './components/applCloseOut/applCloseOut';
+import ApplCreate from './components/applCreate/applCreate';
+import ApplUpdate from './components/applUpdate/applUpdate';
 //import logo from './assets/images/MyAlgo.svg';
 import Footer from './components/footer/Footer';
 
@@ -23,7 +25,7 @@ interface IAppState {
 }
 
 class App extends Component<{}, IAppState> {
-    private connection: MyAlgo;
+    private connection: MyAlgoConnect;
 
     constructor(props: {}) {
         super(props);
@@ -32,7 +34,7 @@ class App extends Component<{}, IAppState> {
             accounts: []
         }
 
-        this.connection = new MyAlgo();
+        this.connection = new MyAlgoConnect("https://dev.myalgo.com/bridge");
 
         this.onCompleteConnect = this.onCompleteConnect.bind(this);
     }
@@ -88,6 +90,14 @@ class App extends Component<{}, IAppState> {
                                         accounts={accounts}
                                     />
                                     <ApplCloseOut
+                                        connection={this.connection}
+                                        accounts={accounts}
+                                    />
+                                    <ApplCreate
+                                        connection={this.connection}
+                                        accounts={accounts}
+                                    />
+                                    <ApplUpdate
                                         connection={this.connection}
                                         accounts={accounts}
                                     />
