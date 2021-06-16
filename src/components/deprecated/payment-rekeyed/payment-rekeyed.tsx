@@ -7,7 +7,7 @@ import NumberFormat, { NumberFormatValues } from 'react-number-format';
 import algosdk from "algosdk";
 
 import { fromDecimal, validateAddress } from '../../../utils/algorand';
-import PrismCode from '../../commons/code/Code';
+import PrismCode from '../../commons/Code';
 
 
 interface IRekeyPaymentProps {

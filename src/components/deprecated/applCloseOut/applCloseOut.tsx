@@ -4,7 +4,7 @@ import { Container, Row, Col, Form, FormGroup, Label, Input,
 import MyAlgo, { Accounts, ApplTxn } from '@randlabs/myalgo-connect';
 import MaskedInput from 'react-text-mask';
 import algosdk from "algosdk";
-import PrismCode from '../../commons/code/Code';
+import PrismCode from '../../commons/Code';
 
 
 interface IApplCloseOutProps {

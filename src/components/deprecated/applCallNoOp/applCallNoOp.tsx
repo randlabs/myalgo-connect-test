@@ -5,7 +5,7 @@ import MyAlgo, { SignedTx, Accounts, ApplTxn, PaymentTxn } from '@randlabs/myalg
 import MaskedInput from 'react-text-mask';
 import NumberFormat, { NumberFormatValues } from 'react-number-format';
 import algosdk from "algosdk";
-import PrismCode from '../../commons/code/Code';
+import PrismCode from '../../commons/Code';
 import { fromDecimal } from '../../../utils/algorand';
 
 

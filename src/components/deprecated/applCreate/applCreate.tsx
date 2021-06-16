@@ -3,7 +3,7 @@ import { Container, Row, Col, Form, FormGroup, Label, Input,
     Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button } from 'reactstrap';
 import MyAlgo, { Accounts, CreateApplTxn } from '@randlabs/myalgo-connect';
 import algosdk from "algosdk";
-import PrismCode from '../../commons/code/Code';
+import PrismCode from '../../commons/Code';
 import NumberFormat, { NumberFormatValues } from 'react-number-format';
 
 

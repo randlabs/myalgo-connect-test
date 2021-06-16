@@ -8,7 +8,7 @@ import algosdk from "algosdk";
 
 
 import { fromDecimal, validateAddress } from '../../../utils/algorand';
-import PrismCode from '../../commons/code/Code';
+import PrismCode from '../../commons/Code';
 
 
 const secretKey = algosdk.mnemonicToSecretKey("adapt cart soul such autumn post achieve polar sugar start hour avocado race believe toward goose juice crucial walk wisdom carry lamp recycle ability enough");

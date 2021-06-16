@@ -1,7 +1,7 @@
 import React, { FC, useState } from 'react';
 import { Container, Row, Col, Button } from 'reactstrap';
 import MyAlgo, { Accounts } from '@randlabs/myalgo-connect';
-import PrismCode from './commons/code/Code';
+import PrismCode from './commons/Code';
 
 interface ConnectProps {
     connection: MyAlgo;

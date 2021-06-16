@@ -1,21 +1,21 @@
-import React, { FC, Fragment, useState } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 import { Container, Row, Col } from 'reactstrap';
-import MyAlgoConnect, { Accounts } from '@randlabs/myalgo-connect';
+import { Accounts } from '@randlabs/myalgo-connect';
 import algosdk from "algosdk"
+import { connection, algodClient } from './utils/connections';
 
 import './App.scss';
 
+import ParamsProvider from "./context/paramsContext";
+import AccountsProvider from "./context/accountsContext";
 import Navbar from './components/bars/Navbar';
 import Footer from './components/bars/Footer';
-
 import Connect from './components/Connect';
+import Payment from './components/operations/payment';
 
-const connection = new MyAlgoConnect({ bridgeUrl: "https://wallet.localhost.com:3000" });
-const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io', '');
+let timeoutResolution: NodeJS.Timeout | null = null;
 
-let firstFetch = false;
-
-const App: FC = (): JSX.Element => {
+export default function App(): JSX.Element {
 
     const [ params, setParams ] = useState<algosdk.SuggestedParams>();
     const [ accounts, setAccounts ] = useState<Accounts[]>([]);
@@ -32,13 +32,16 @@ const App: FC = (): JSX.Element => {
         catch (err) {
             console.log(err);
         }
-        setTimeout(getTransactionParams, 10000)
+        timeoutResolution = setTimeout(getTransactionParams, 10000);
     }
 
-    if (!firstFetch) {
-        firstFetch = true;
+    useEffect(() => {
+        if (timeoutResolution)
+            clearTimeout(timeoutResolution);
         getTransactionParams();
-    }
+    }, [ accounts ])
+
+    console.log(accounts, params)
 
     return (
         <Fragment>
@@ -51,8 +54,12 @@ const App: FC = (): JSX.Element => {
                             onComplete={onCompleteConnect}
                         />
                         {
-                            accounts.length > 0 && params
-                            ? <Fragment></Fragment> : null
+                            accounts.length > 0 && params &&
+                            <ParamsProvider params = {params}>
+                                <AccountsProvider accounts = {accounts}>
+                                    <Payment />
+                                </AccountsProvider>
+                            </ParamsProvider>
                         }
                     </Col>
                 </Row>
@@ -61,5 +68,3 @@ const App: FC = (): JSX.Element => {
         </Fragment>
     );
 }
-
-export default App;
