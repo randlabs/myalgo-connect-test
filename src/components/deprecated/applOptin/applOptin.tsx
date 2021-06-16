@@ -1,50 +1,41 @@
 import React, { Component, ReactNode, ChangeEvent, FormEvent, ReactElement } from 'react';
 import { Container, Row, Col, Form, FormGroup, Label, Input,
     Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button } from 'reactstrap';
-import MyAlgo, { Accounts, CreateApplTxn } from '@randlabs/myalgo-connect';
-import algosdk from 'algosdk';
-import PrismCode from '../code/Code';
-import NumberFormat, { NumberFormatValues } from 'react-number-format';
+import MyAlgo, { Accounts, ApplTxn } from '@randlabs/myalgo-connect';
+import MaskedInput from 'react-text-mask';
+import algosdk from "algosdk";
+import PrismCode from '../../commons/code/Code';
 
 
-interface IApplCreateProps {
+interface IApplOptInProps {
     connection: MyAlgo;
     accounts: Accounts[];
 }
 
-interface IApplCreateState {
+interface IApplOptInState {
     accounts: Accounts[];
     from: Accounts;
     isOpenDropdownFrom: boolean;
 
+    note: string;
+    validNote: boolean;
+
 	noteb64: Uint8Array;
     response: any;
-
-    // appl create params
-    appLocalByteSlices: number,
-    appLocalInts: number,
-    appGlobalByteSlices: number,
-    appGlobalInts: number,
 }
 
 const code = `
 (async () => {
     const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io','');
     const params = await algodClient.getTransactionParams().do();
-
+      
     const txn = {
         ...params,
-        fee: 1000,
         type: "appl",
+        appIndex: 14241387,
+        appOnComplete: 1, // OnApplicationComplete.OptInOC
         from: accounts[0].address,
         note: new Uint8Array(Buffer.from('...')),
-
-        appLocalByteSlices: 2,
-        appLocalInts: 2,
-        appGlobalByteSlices: 4,
-        appGlobalInts: 4,
-        appApprovalProgram: new Uint8Array(0),
-        appClearProgram: new Uint8Array(0),
     };
   
     const signedTxn = await myAlgoWallet.signTransaction(txn);
@@ -54,9 +45,11 @@ const code = `
 `;
 
 
-class ApplCreate extends Component<IApplCreateProps, IApplCreateState> {
+class Payment extends Component<IApplOptInProps, IApplOptInState> {
+    private addressMask: Array<RegExp>;
+    private appIndex = 14241387;
 
-    constructor(props: IApplCreateProps) {
+    constructor(props: IApplOptInProps) {
 		super(props);
 
         const { accounts } = this.props;
@@ -66,26 +59,26 @@ class ApplCreate extends Component<IApplCreateProps, IApplCreateState> {
             from: accounts[0],
             isOpenDropdownFrom: false,
 
-            noteb64: new Uint8Array(),
-			response: null,
+            note: "",
+            validNote: false,
 
-            appLocalByteSlices: 0,
-            appLocalInts: 0,
-            appGlobalByteSlices: 0,
-            appGlobalInts: 0,
+            noteb64: new Uint8Array(),
+			response: null
 		};
+
+        this.addressMask = [];
+		for (let i = 58; i > 0; i--) {
+			this.addressMask.push(/[A-Z0-9]/iu);
+		}
 
         this.onClearResponse = this.onClearResponse.bind(this);
         this.onToggleFrom = this.onToggleFrom.bind(this);
         this.onFromSelected = this.onFromSelected.bind(this);
-        this.onSubmitCreateAppl = this.onSubmitCreateAppl.bind(this);
-        this.onChangeLocalInt = this.onChangeLocalInt.bind(this);
-        this.onChangeGlobalInt = this.onChangeGlobalInt.bind(this);
-        this.onChangeLocalBytes = this.onChangeLocalBytes.bind(this);
-        this.onChangeGlobalBytes = this.onChangeGlobalBytes.bind(this);
+        this.onChangeNote = this.onChangeNote.bind(this);
+        this.onSubmitPaymentTx = this.onSubmitPaymentTx.bind(this);
 	}
 
-    componentDidUpdate(prevProps: IApplCreateProps): void {
+    componentDidUpdate(prevProps: IApplOptInProps): void {
 		if (this.props.accounts !== prevProps.accounts) {
 			const accounts = this.props.accounts;
 			this.setState({
@@ -93,30 +86,6 @@ class ApplCreate extends Component<IApplCreateProps, IApplCreateState> {
                 from: accounts[0]
 			});
 		}
-	}
-
-    onChangeLocalInt(values: NumberFormatValues): void {
-		this.setState({
-			appLocalInts: parseInt(values.value),
-		});
-	}
-
-    onChangeGlobalInt(values: NumberFormatValues): void {
-		this.setState({
-			appGlobalInts: parseInt(values.value),
-		});
-	}
-
-    onChangeLocalBytes(values: NumberFormatValues): void {
-		this.setState({
-			appLocalByteSlices: parseInt(values.value),
-		});
-	}
-
-    onChangeGlobalBytes(values: NumberFormatValues): void {
-		this.setState({
-			appGlobalByteSlices: parseInt(values.value),
-		});
 	}
 
     onClearResponse(): void {
@@ -137,34 +106,41 @@ class ApplCreate extends Component<IApplCreateProps, IApplCreateState> {
 		});
 	}
 
-    async onSubmitCreateAppl(event: FormEvent<HTMLFormElement>): Promise<void> {
+    onChangeNote(event: ChangeEvent<HTMLInputElement>): void {
+        const note = event.target.value;
+        let noteb64;
+
+		if (note) {
+			noteb64 = new Uint8Array(Buffer.from(note, "ascii"));
+		}
+
+		this.setState({
+			note,
+            validNote: note.length > 0,
+			noteb64: typeof noteb64 !== "undefined" ? noteb64 : new Uint8Array()
+		});
+	}
+
+    async onSubmitPaymentTx(event: FormEvent<HTMLFormElement>): Promise<void> {
 		event.preventDefault();
         const { connection } = this.props;
-        const { from, noteb64, appGlobalByteSlices, appGlobalInts, appLocalByteSlices, appLocalInts } = this.state;
+        const { from, noteb64 } = this.state;
         try {
             const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io', '');
             const params = await algodClient.getTransactionParams().do();
 
-            const approvalProgram = Buffer.from("AiAGAAEFBAIDJgIHQ3JlYXRvcgZFc2Nyb3ciMRgSQAAtIzEZEkAAQyIxGRJAACskMRkSQAA4JTEZEkAAPCEEMRkSIQUxGRIRQABAQgA7KDEAZyk2GgBnQgAxMRsiEkAALDEbIxJAAD5CAB5CAB0oZDEAEkEAE0IAEihkMQASQQAIKTYaAGdCAAIiQyNDMgQhBBIzARAjEhAzAQgjDzMBBylkEhAQQzIEIQQSMwEQIxIQMwEAKWQSMwAAKGQSEBBD", "base64");
-            const clearProgram = Buffer.from("AiABASJD", "base64");
-
-            const txn: CreateApplTxn = {
+            const txn: ApplTxn = {
                 fee: 1000,
                 flatFee: true,
                 type: "appl",
+                appIndex: this.appIndex,
+                appOnComplete: 1,
                 from: from.address,
                 note: noteb64,
                 firstRound: params.firstRound,
                 lastRound: params.lastRound,
                 genesisHash: params.genesisHash,
                 genesisID: params.genesisID,
-                appLocalByteSlices: appLocalByteSlices,
-                appLocalInts: appLocalInts,
-                appGlobalByteSlices: appGlobalByteSlices,
-                appGlobalInts: appGlobalInts,
-                appApprovalProgram: new Uint8Array(approvalProgram),
-                appClearProgram: new Uint8Array(clearProgram),
-                appArgs: [ new Uint8Array(Buffer.from(from.address)) ]
             };
 
             if (!txn.note || txn.note.length === 0)
@@ -178,10 +154,8 @@ class ApplCreate extends Component<IApplCreateProps, IApplCreateState> {
 
             this.setState({
                 response,
-                appLocalByteSlices: 0,
-                appLocalInts: 0,
-                appGlobalByteSlices: 0,
-                appGlobalInts: 0,
+                note: "",
+                validNote: false
             });
         }
         catch(err) {
@@ -190,22 +164,21 @@ class ApplCreate extends Component<IApplCreateProps, IApplCreateState> {
     }
 
     render(): ReactNode {
-        const { isOpenDropdownFrom, accounts, from, response,
-         appLocalInts, appGlobalInts, appLocalByteSlices, appGlobalByteSlices} = this.state;
+        const { isOpenDropdownFrom, accounts, from, note, response } = this.state;
 
         return (
             <Container className="mt-5 pb-5">
                 <Row className="mt-4">
                     <Col xs="12" sm="6">
-                        <h1>Application Create transaction</h1>
-                        <p>Make an appl create transaction</p>
+                        <h1>Application Opt-In transaction</h1>
+                        <p>Make an appl opt-in transaction (with note)</p>
                     </Col>
                 </Row>
                 <Row>
                     <Col xs="12" lg="6">
                         <Form
                             id="payment-tx"
-                            onSubmit={this.onSubmitCreateAppl}
+                            onSubmit={this.onSubmitPaymentTx}
                         >
                             <FormGroup className="align-items-center">
                                 <Label className="tx-label">
@@ -239,61 +212,31 @@ class ApplCreate extends Component<IApplCreateProps, IApplCreateState> {
                                 </Dropdown>
                             </FormGroup>
                             <FormGroup className="align-items-center">
-                               <Label className="tx-label">
-                                    Local Ints
+                                <Label className="tx-label">
+                                    App Index
                                 </Label>
-                                <NumberFormat
-                                    value={appLocalInts}
-                                    onValueChange={this.onChangeLocalInt}
+                                <MaskedInput
                                     className="form-control tx-input"
-                                    placeholder="0"
-                                    decimalScale={0}
-                                    allowNegative={false}
-                                    isNumericString={true}
+                                    mask={this.addressMask}
+                                    value={this.appIndex}
+                                    placeholder=""
+                                    placeholderChar=" "
+                                    guide={false}
+                                    disabled={true}
                                 />
 						    </FormGroup>
-                            <FormGroup className="align-items-center">
-                               <Label className="tx-label">
-                                    Local Bytes Slices
+                            <FormGroup>
+                                <Label className="tx-label">
+                                    Note
                                 </Label>
-                                <NumberFormat
-                                    value={appLocalByteSlices}
-                                    onValueChange={this.onChangeLocalBytes}
-                                    className="form-control tx-input"
-                                    placeholder="0"
-                                    decimalScale={0}
-                                    allowNegative={false}
-                                    isNumericString={true}
+                                <Input
+                                    className="tx-input note"
+                                    type="textarea"
+                                    placeholder="Note"
+                                    value={note}
+                                    onChange={this.onChangeNote}
                                 />
-						    </FormGroup>
-                            <FormGroup className="align-items-center">
-                               <Label className="tx-label">
-                                    Global Ints
-                                </Label>
-                                <NumberFormat
-                                    value={appGlobalInts}
-                                    onValueChange={this.onChangeGlobalInt}
-                                    className="form-control tx-input"
-                                    placeholder="0"
-                                    decimalScale={0}
-                                    allowNegative={false}
-                                    isNumericString={true}
-                                />
-						    </FormGroup>
-                            <FormGroup className="align-items-center">
-                               <Label className="tx-label">
-                                    Global Byte Slices
-                                </Label>
-                                <NumberFormat
-                                    value={appGlobalByteSlices}
-                                    onValueChange={this.onChangeGlobalBytes}
-                                    className="form-control tx-input"
-                                    placeholder="0"
-                                    decimalScale={0}
-                                    allowNegative={false}
-                                    isNumericString={true}
-                                />
-						    </FormGroup>
+                            </FormGroup>
                             <Button
                                 color="primary"
                                 block
@@ -327,4 +270,4 @@ class ApplCreate extends Component<IApplCreateProps, IApplCreateState> {
     }
 }
 
-export default ApplCreate;
+export default Payment;

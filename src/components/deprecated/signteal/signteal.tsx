@@ -1,54 +1,95 @@
 import React, { Component, ReactNode, ChangeEvent, FormEvent, ReactElement } from 'react';
 import { Container, Row, Col, Form, FormGroup, Label, Input,
     Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button } from 'reactstrap';
-import MyAlgo, { Accounts, UpdateApplTxn } from '@randlabs/myalgo-connect';
-import algosdk from 'algosdk';
-import PrismCode from '../code/Code';
+import MyAlgo, { Accounts, Address, PaymentTxn } from '@randlabs/myalgo-connect';
+import MaskedInput from 'react-text-mask';
 import NumberFormat, { NumberFormatValues } from 'react-number-format';
+import algosdk from "algosdk";
+
+import { fromDecimal, validateAddress } from '../../../utils/algorand';
+import PrismCode from '../../commons/code/Code';
 
 
-interface IApplCreateProps {
+interface ISignTealProps {
     connection: MyAlgo;
     accounts: Accounts[];
 }
 
-interface IApplCreateState {
+interface ISignTealState {
     accounts: Accounts[];
     from: Accounts;
     isOpenDropdownFrom: boolean;
+
+    to: Address;
+    validTo: boolean;
+
+    amount: string;
+    validAmount: boolean;
+
+    note: string;
+    validNote: boolean;
+
+	noteb64: Uint8Array;
     response: any;
-    appIndex: number;
 }
 
 const code = `
 (async () => {
-    const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io','');
+  try {
+    const algodClient = new algosdk.Algodv2(
+        '',
+        'https://api.testnet.algoexplorer.io',
+        ''
+    );
     const params = await algodClient.getTransactionParams().do();
-
+      
     const txn = {
         ...params,
-        fee: 1000,
-        flatFee: true,
-        type: "appl",
+        type: 'pay',
         from: accounts[0].address,
+        to:  '...',
+        amount: 1000000, // 1 algo
         note: new Uint8Array(Buffer.from('...')),
-        appOnComplete: 4, 
-        appIndex: appIndex,
-        appApprovalProgram: new Uint8Array(0),
-        appClearProgram: new Uint8Array(0),
-        appArgs: [ new Uint8Array(Buffer.from(from.address)) ]
     };
   
-    const signedTxn = await myAlgoWallet.signTransaction(txn);
+    const logic = algosdk.makeLogicSig(new Uint8Array(Buffer.from(compiledTeal, "base64")));
+
+    logic.sig = await connection.signLogicSig(logic.program, from.address);
+
+    const signedTxn = algosdk.signLogicSigTransaction(txn, logic)
 
     await algodClient.sendRawTransaction(signedTxn.blob).do();
+  }
+  catch(err) {
+    console.error(err); 
+  }
 })();
 `;
 
+const statelessTeal = 
+`
+txn Amount
+int 0
+>=
+txn Fee
+int 1000
+==
+&&
+txn Type
+byte "pay"
+==
+txn TxID
+byte b32 $REPLACE_FOR_TXID
+==
+&&
+&&
+`
 
-class ApplCreate extends Component<IApplCreateProps, IApplCreateState> {
 
-    constructor(props: IApplCreateProps) {
+class Payment extends Component<ISignTealProps, ISignTealState> {
+    private addressMask: Array<RegExp>;
+
+    constructor(props: ISignTealProps) {
 		super(props);
 
         const { accounts } = this.props;
@@ -57,18 +98,35 @@ class ApplCreate extends Component<IApplCreateProps, IApplCreateState> {
             accounts,
             from: accounts[0],
             isOpenDropdownFrom: false,
-			response: null,
-            appIndex: 0,
+
+            to: "",
+            validTo: false,
+
+            amount: "",
+            validAmount: false,
+
+            note: "",
+            validNote: false,
+
+            noteb64: new Uint8Array(),
+			response: null
 		};
+
+        this.addressMask = [];
+		for (let i = 58; i > 0; i--) {
+			this.addressMask.push(/[A-Z0-9]/iu);
+		}
 
         this.onClearResponse = this.onClearResponse.bind(this);
         this.onToggleFrom = this.onToggleFrom.bind(this);
         this.onFromSelected = this.onFromSelected.bind(this);
-        this.onSubmitUpdateAppl = this.onSubmitUpdateAppl.bind(this);
-        this.onChangeAppIndex = this.onChangeAppIndex.bind(this);
+        this.onChangeTo = this.onChangeTo.bind(this);
+        this.onChangeAmount = this.onChangeAmount.bind(this);
+        this.onChangeNote = this.onChangeNote.bind(this);
+        this.onSubmitPaymentTx = this.onSubmitPaymentTx.bind(this);
 	}
 
-    componentDidUpdate(prevProps: IApplCreateProps): void {
+    componentDidUpdate(prevProps: ISignTealProps): void {
 		if (this.props.accounts !== prevProps.accounts) {
 			const accounts = this.props.accounts;
 			this.setState({
@@ -78,11 +136,6 @@ class ApplCreate extends Component<IApplCreateProps, IApplCreateState> {
 		}
 	}
 
-    onChangeAppIndex(values: NumberFormatValues): void {
-		this.setState({
-			appIndex: parseInt(values.value),
-		});
-	}
     onClearResponse(): void {
         this.setState({
 			response: null
@@ -101,45 +154,92 @@ class ApplCreate extends Component<IApplCreateProps, IApplCreateState> {
 		});
 	}
 
-    async onSubmitUpdateAppl(event: FormEvent<HTMLFormElement>): Promise<void> {
+    async onChangeTo(event: ChangeEvent<HTMLInputElement>): Promise<void> {
+		event.persist();
+
+        const to = event.target.value;
+        let validTo = true;
+
+        if (!validateAddress(to)) {
+			validTo = false;
+		}
+    
+		this.setState({
+			to,
+            validTo
+		});
+	}
+
+    onChangeAmount(values: NumberFormatValues): void {
+		this.setState({
+			amount: values.value,
+            validAmount: typeof values.floatValue !== "undefined" && values.floatValue > 0
+		});
+	}
+
+    onChangeNote(event: ChangeEvent<HTMLInputElement>): void {
+        const note = event.target.value;
+        let noteb64;
+
+		if (note) {
+			noteb64 = new Uint8Array(Buffer.from(note, "ascii"));
+		}
+
+		this.setState({
+			note,
+            validNote: note.length > 0,
+			noteb64: typeof noteb64 !== "undefined" ? noteb64 : new Uint8Array()
+		});
+	}
+
+    async onSubmitPaymentTx(event: FormEvent<HTMLFormElement>): Promise<void> {
 		event.preventDefault();
         const { connection } = this.props;
-        const { from, appIndex } = this.state;
+        const { from, to, amount, noteb64 } = this.state;
+    
         try {
             const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io', '');
             const params = await algodClient.getTransactionParams().do();
 
-            const approvalProgram = Buffer.from("AiAGAAEFBAIDJgIHQ3JlYXRvcgZFc2Nyb3ciMRgSQAAtIzEZEkAAQyIxGRJAACskMRkSQAA4JTEZEkAAPCEEMRkSIQUxGRIRQABAQgA7KDEAZyk2GgBnQgAxMRsiEkAALDEbIxJAAD5CAB5CAB0oZDEAEkEAE0IAEihkMQASQQAIKTYaAGdCAAIiQyNDMgQhBBIzARAjEhAzAQgjDzMBBylkEhAQQzIEIQQSMwEQIxIQMwEAKWQSMwAAKGQSEBBD", "base64");
-            const clearProgram = Buffer.from("AiABASJD", "base64");
-
-            const txn: UpdateApplTxn = {
+            const txn: any = {
                 fee: 1000,
                 flatFee: true,
-                type: "appl",
+                type: "pay",
                 from: from.address,
-                appOnComplete: 4, 
-                appIndex: appIndex,
+                to,
+                amount: fromDecimal(amount ? amount : "0", 6),
+                note: noteb64,
                 firstRound: params.firstRound,
                 lastRound: params.lastRound,
                 genesisHash: params.genesisHash,
                 genesisID: params.genesisID,
-                appApprovalProgram: new Uint8Array(approvalProgram),
-                appClearProgram: new Uint8Array(clearProgram),
-                appArgs: [ new Uint8Array(Buffer.from(from.address)) ]
             };
 
             if (!txn.note || txn.note.length === 0)
                 delete txn.note;
-          
-            const signedTxn = await connection.signTransaction(txn);
 
-            let response;
-            if (!Array.isArray(signedTxn))
-                response = await algodClient.sendRawTransaction(signedTxn.blob).do();
+            // Calculate txn hash
+            const txHash = (new algosdk.Transaction(txn)).txID();
+
+            // Compile teal
+            const compiledTeal = await algodClient.compile(statelessTeal.replace("$REPLACE_FOR_TXID", `${txHash}`)).do();
+
+            const lsig = algosdk.makeLogicSig(new Uint8Array(Buffer.from(compiledTeal.result, "base64")));
+
+            lsig.sig = await connection.signLogicSig(lsig.logic, from.address);
+
+            const signedTxn = algosdk.signLogicSigTransaction(txn, lsig);
+
+            const response = await algodClient.sendRawTransaction(signedTxn.blob).do();
 
             this.setState({
                 response,
-
+                to: "",
+                validTo: false,
+                amount: "",
+                validAmount: false,
+                note: "",
+                validNote: false
             });
         }
         catch(err) {
@@ -148,21 +248,22 @@ class ApplCreate extends Component<IApplCreateProps, IApplCreateState> {
     }
 
     render(): ReactNode {
-        const { isOpenDropdownFrom, accounts, from, response, appIndex } = this.state;
+        const { isOpenDropdownFrom, accounts, from, to, validTo,
+            amount, validAmount, note, validNote, response } = this.state;
 
         return (
             <Container className="mt-5 pb-5">
                 <Row className="mt-4">
                     <Col xs="12" sm="6">
-                        <h1>Application Create transaction</h1>
-                        <p>Make an appl create transaction</p>
+                        <h1>Payment transaction with teal</h1>
+                        <p>Make a payment transaction and send it by a signed stateless teal</p>
                     </Col>
                 </Row>
                 <Row>
                     <Col xs="12" lg="6">
                         <Form
                             id="payment-tx"
-                            onSubmit={this.onSubmitUpdateAppl}
+                            onSubmit={this.onSubmitPaymentTx}
                         >
                             <FormGroup className="align-items-center">
                                 <Label className="tx-label">
@@ -196,23 +297,53 @@ class ApplCreate extends Component<IApplCreateProps, IApplCreateState> {
                                 </Dropdown>
                             </FormGroup>
                             <FormGroup className="align-items-center">
+                                <Label className="tx-label">
+                                    To
+                                </Label>
+                                <MaskedInput
+                                    className="form-control tx-input"
+                                    mask={this.addressMask}
+                                    value={to}
+                                    placeholder=""
+                                    placeholderChar=" "
+                                    guide={false}
+                                    onChange={this.onChangeTo}
+                                    required
+                                />
+						    </FormGroup>
+                            <FormGroup className="align-items-center">
                                <Label className="tx-label">
-                                    AppIndex
+                                    Amount
                                 </Label>
                                 <NumberFormat
-                                    value={appIndex}
-                                    onValueChange={this.onChangeAppIndex}
+                                    value={amount}
+                                    onValueChange={this.onChangeAmount}
                                     className="form-control tx-input"
-                                    placeholder="0"
-                                    decimalScale={0}
+                                    placeholder="0.0"
+                                    thousandSeparator={","}
+                                    decimalSeparator={"."}
+                                    decimalScale={6}
                                     allowNegative={false}
                                     isNumericString={true}
                                 />
-						    </FormGroup>
+						</FormGroup>
+                            <FormGroup>
+                                <Label className="tx-label">
+                                    Note
+                                </Label>
+                                <Input
+                                    className="tx-input note"
+                                    type="textarea"
+                                    placeholder="Note"
+                                    value={note}
+                                    onChange={this.onChangeNote}
+                                />
+                            </FormGroup>
                             <Button
                                 color="primary"
                                 block
                                 type="submit"
+                                disabled={!validTo || !validAmount}
                             >
                                 Submit
                             </Button>
@@ -242,4 +373,4 @@ class ApplCreate extends Component<IApplCreateProps, IApplCreateState> {
     }
 }
 
-export default ApplCreate;
+export default Payment;

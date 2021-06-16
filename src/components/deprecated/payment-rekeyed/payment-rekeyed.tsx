@@ -1,21 +1,33 @@
 import React, { Component, ReactNode, ChangeEvent, FormEvent, ReactElement } from 'react';
 import { Container, Row, Col, Form, FormGroup, Label, Input,
     Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button } from 'reactstrap';
-import MyAlgo, { Accounts, ApplTxn } from '@randlabs/myalgo-connect';
+import MyAlgo, { Accounts, Address, SignedTx, PaymentTxn } from '@randlabs/myalgo-connect';
 import MaskedInput from 'react-text-mask';
-import algosdk from 'algosdk';
-import PrismCode from '../code/Code';
+import NumberFormat, { NumberFormatValues } from 'react-number-format';
+import algosdk from "algosdk";
+
+import { fromDecimal, validateAddress } from '../../../utils/algorand';
+import PrismCode from '../../commons/code/Code';
 
 
-interface IApplCloseOutProps {
+interface IRekeyPaymentProps {
     connection: MyAlgo;
     accounts: Accounts[];
 }
 
-interface IApplCloseOutState {
+interface IRekeyPaymentState {
     accounts: Accounts[];
     from: Accounts;
     isOpenDropdownFrom: boolean;
+
+    fromRekeyed: Address;
+    validFrom: boolean;
+
+    to: Address;
+    validTo: boolean;
+
+    amount: string;
+    validAmount: boolean;
 
     note: string;
     validNote: boolean;
@@ -26,15 +38,16 @@ interface IApplCloseOutState {
 
 const code = `
 (async () => {
-    const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io','');
+    const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io', '');
     const params = await algodClient.getTransactionParams().do();
       
     const txn = {
         ...params,
-        type: "appl",
-        appIndex: 14241387,
-        appOnComplete: 2, // OnApplicationComplete.CloseOutOC
-        from: accounts[0].address,
+        type: 'pay',
+        signer: accounts[0].address
+        from: rekeyedAccount,
+        to:  '...',
+        amount: 1000000, // 1 algo
         note: new Uint8Array(Buffer.from('...')),
     };
   
@@ -45,11 +58,10 @@ const code = `
 `;
 
 
-class Payment extends Component<IApplCloseOutProps, IApplCloseOutState> {
+class PaymentRekeyed extends Component<IRekeyPaymentProps, IRekeyPaymentState> {
     private addressMask: Array<RegExp>;
-    private appIndex = 14241387;
 
-    constructor(props: IApplCloseOutProps) {
+    constructor(props: IRekeyPaymentProps) {
 		super(props);
 
         const { accounts } = this.props;
@@ -58,6 +70,15 @@ class Payment extends Component<IApplCloseOutProps, IApplCloseOutState> {
             accounts,
             from: accounts[0],
             isOpenDropdownFrom: false,
+
+            fromRekeyed: "",
+            validFrom: false,
+
+            to: "",
+            validTo: false,
+
+            amount: "",
+            validAmount: false,
 
             note: "",
             validNote: false,
@@ -74,11 +95,14 @@ class Payment extends Component<IApplCloseOutProps, IApplCloseOutState> {
         this.onClearResponse = this.onClearResponse.bind(this);
         this.onToggleFrom = this.onToggleFrom.bind(this);
         this.onFromSelected = this.onFromSelected.bind(this);
+        this.onChangeTo = this.onChangeTo.bind(this);
+        this.onChangeFrom = this.onChangeFrom.bind(this);
+        this.onChangeAmount = this.onChangeAmount.bind(this);
         this.onChangeNote = this.onChangeNote.bind(this);
         this.onSubmitPaymentTx = this.onSubmitPaymentTx.bind(this);
 	}
 
-    componentDidUpdate(prevProps: IApplCloseOutProps): void {
+    componentDidUpdate(prevProps: IRekeyPaymentProps): void {
 		if (this.props.accounts !== prevProps.accounts) {
 			const accounts = this.props.accounts;
 			this.setState({
@@ -106,6 +130,45 @@ class Payment extends Component<IApplCloseOutProps, IApplCloseOutState> {
 		});
 	}
 
+    async onChangeTo(event: ChangeEvent<HTMLInputElement>): Promise<void> {
+		event.persist();
+
+        const to = event.target.value;
+        let validTo = true;
+
+        if (!validateAddress(to)) {
+			validTo = false;
+		}
+    
+		this.setState({
+			to,
+            validTo
+		});
+	}
+
+    async onChangeFrom(event: ChangeEvent<HTMLInputElement>): Promise<void> {
+		event.persist();
+
+        const from = event.target.value;
+        let validFrom = true;
+
+        if (!validateAddress(from)) {
+			validFrom = false;
+		}
+    
+		this.setState({
+			fromRekeyed: from,
+            validFrom
+		});
+	}
+
+    onChangeAmount(values: NumberFormatValues): void {
+		this.setState({
+			amount: values.value,
+            validAmount: typeof values.floatValue !== "undefined" && values.floatValue > 0
+		});
+	}
+
     onChangeNote(event: ChangeEvent<HTMLInputElement>): void {
         const note = event.target.value;
         let noteb64;
@@ -124,39 +187,47 @@ class Payment extends Component<IApplCloseOutProps, IApplCloseOutState> {
     async onSubmitPaymentTx(event: FormEvent<HTMLFormElement>): Promise<void> {
 		event.preventDefault();
         const { connection } = this.props;
-        const { from, noteb64 } = this.state;
+        const { from, to, amount, noteb64, fromRekeyed } = this.state;
+    
         try {
-            const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io', '');
-            const params = await algodClient.getTransactionParams().do();
+            // const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io', '');
+            // const params = await algodClient.getTransactionParams().do();
 
-            const txn: ApplTxn = {
-                fee: 1000,
-                flatFee: true,
-                type: "appl",
-                appIndex: this.appIndex,
-                appOnComplete: 2,
-                from: from.address,
-                note: noteb64,
-                firstRound: params.firstRound,
-                lastRound: params.lastRound,
-                genesisHash: params.genesisHash,
-                genesisID: params.genesisID,
-            };
+            // const txn: PaymentTxn = {
+            //     fee: 1000,
+            //     flatFee: true,
+            //     type: "pay",
+            //     signer: from.address,
+            //     from: fromRekeyed, 
+            //     to,
+            //     amount: fromDecimal(amount ? amount : "0", 6),
+            //     note: noteb64,
+            //     firstRound: params.firstRound,
+            //     lastRound: params.lastRound,
+            //     genesisHash: params.genesisHash,
+            //     genesisID: params.genesisID,
+            // };
 
-            if (!txn.note || txn.note.length === 0)
-                delete txn.note;
+            // if (!txn.note || txn.note.length === 0)
+            //     delete txn.note;
           
-            const signedTxn = await connection.signTransaction(txn);
+            // const signedTxn = await connection.signTransaction(txn);
 
-            let response;
-            if (!Array.isArray(signedTxn))
-                response = await algodClient.sendRawTransaction(signedTxn.blob).do();
+            // let response;
+            // if (!Array.isArray(signedTxn))
+            //     response = await algodClient.sendRawTransaction(signedTxn.blob).do();
 
-            this.setState({
-                response,
-                note: "",
-                validNote: false
-            });
+            // this.setState({
+            //     response,
+            //     to: "",
+            //     fromRekeyed: "",
+            //     validFrom: false,
+            //     validTo: false,
+            //     amount: "",
+            //     validAmount: false,
+            //     note: "",
+            //     validNote: false
+            // });
         }
         catch(err) {
             this.setState({ response: err.message, });
@@ -164,14 +235,15 @@ class Payment extends Component<IApplCloseOutProps, IApplCloseOutState> {
     }
 
     render(): ReactNode {
-        const { isOpenDropdownFrom, accounts, from, note, response } = this.state;
+        const { isOpenDropdownFrom, accounts, from, to, validTo,
+            amount, validAmount, note, validNote, response, fromRekeyed, validFrom } = this.state;
 
         return (
             <Container className="mt-5 pb-5">
                 <Row className="mt-4">
                     <Col xs="12" sm="6">
-                        <h1>Application CloseOut transaction</h1>
-                        <p>Make an appl close-out transaction (with note)</p>
+                        <h1>Payment transaction with a rekeyed address</h1>
+                        <p>Make a payment transaction with a rekeyed account</p>
                     </Col>
                 </Row>
                 <Row>
@@ -182,7 +254,7 @@ class Payment extends Component<IApplCloseOutProps, IApplCloseOutState> {
                         >
                             <FormGroup className="align-items-center">
                                 <Label className="tx-label">
-                                    From
+                                    Signer
                                 </Label>
                                 <Dropdown
                                     className="from-dropdown"
@@ -213,18 +285,50 @@ class Payment extends Component<IApplCloseOutProps, IApplCloseOutState> {
                             </FormGroup>
                             <FormGroup className="align-items-center">
                                 <Label className="tx-label">
-                                    App Index
+                                    From
                                 </Label>
                                 <MaskedInput
                                     className="form-control tx-input"
                                     mask={this.addressMask}
-                                    value={this.appIndex}
+                                    value={fromRekeyed}
                                     placeholder=""
                                     placeholderChar=" "
                                     guide={false}
-                                    disabled={true}
+                                    onChange={this.onChangeFrom}
+                                    required
                                 />
 						    </FormGroup>
+                            <FormGroup className="align-items-center">
+                                <Label className="tx-label">
+                                    To
+                                </Label>
+                                <MaskedInput
+                                    className="form-control tx-input"
+                                    mask={this.addressMask}
+                                    value={to}
+                                    placeholder=""
+                                    placeholderChar=" "
+                                    guide={false}
+                                    onChange={this.onChangeTo}
+                                    required
+                                />
+						    </FormGroup>
+                            <FormGroup className="align-items-center">
+                               <Label className="tx-label">
+                                    Amount
+                                </Label>
+                                <NumberFormat
+                                    value={amount}
+                                    onValueChange={this.onChangeAmount}
+                                    className="form-control tx-input"
+                                    placeholder="0.0"
+                                    thousandSeparator={","}
+                                    decimalSeparator={"."}
+                                    decimalScale={6}
+                                    allowNegative={false}
+                                    isNumericString={true}
+                                />
+						</FormGroup>
                             <FormGroup>
                                 <Label className="tx-label">
                                     Note
@@ -241,6 +345,7 @@ class Payment extends Component<IApplCloseOutProps, IApplCloseOutState> {
                                 color="primary"
                                 block
                                 type="submit"
+                                disabled={!validTo || !validAmount || !validFrom}
                             >
                                 Submit
                             </Button>
@@ -270,4 +375,4 @@ class Payment extends Component<IApplCloseOutProps, IApplCloseOutState> {
     }
 }
 
-export default Payment;
+export default PaymentRekeyed;

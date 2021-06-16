@@ -1,4 +1,4 @@
-import algosdk from 'algosdk';
+import algosdk from "algosdk";
 
 export function fromDecimal(value: string|number, decimal: number = 0): number {
 	if (typeof value === "string") {

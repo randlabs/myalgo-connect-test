@@ -4,24 +4,32 @@ import { Container, Row, Col, Form, FormGroup, Label, Input,
 import MyAlgo, { Accounts, Address, SignedTx, PaymentTxn } from '@randlabs/myalgo-connect';
 import MaskedInput from 'react-text-mask';
 import NumberFormat, { NumberFormatValues } from 'react-number-format';
-import algosdk from 'algosdk';
-
-import { fromDecimal, validateAddress } from '../../utils/algorand';
-import PrismCode from '../code/Code';
+import algosdk from "algosdk";
 
 
-interface IRekeyPaymentProps {
+import { fromDecimal, validateAddress } from '../../../utils/algorand';
+import PrismCode from '../../commons/code/Code';
+
+
+const secretKey = algosdk.mnemonicToSecretKey("adapt cart soul such autumn post achieve polar sugar start hour avocado race believe toward goose juice crucial walk wisdom carry lamp recycle ability enough");
+
+const msigParams: any = {
+    version: 1,
+    threshold: 2,
+    addrs: [],
+};
+
+interface IMSigPaymentProps {
     connection: MyAlgo;
     accounts: Accounts[];
 }
 
-interface IRekeyPaymentState {
+interface IMSigPaymentState {
     accounts: Accounts[];
     from: Accounts;
     isOpenDropdownFrom: boolean;
 
-    fromRekeyed: Address;
-    validFrom: boolean;
+    msigAddr: Address;
 
     to: Address;
     validTo: boolean;
@@ -38,41 +46,63 @@ interface IRekeyPaymentState {
 
 const code = `
 (async () => {
-    const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io', '');
-    const params = await algodClient.getTransactionParams().do();
-      
     const txn = {
         ...params,
         type: 'pay',
-        signer: accounts[0].address
-        from: rekeyedAccount,
+        signer: accounts[0].address,
+        from: multisigAccount,
         to:  '...',
         amount: 1000000, // 1 algo
         note: new Uint8Array(Buffer.from('...')),
     };
   
-    const signedTxn = await myAlgoWallet.signTransaction(txn);
+    // MyAlgo Signature
+    const decodedObj = algosdk.decodeObj(signedTxn.blob);
+    const decodedTxn = decodedObj.txn;
 
-    await algodClient.sendRawTransaction(signedTxn.blob).do();
+    const pks = msigParams.addrs.map((addr: string) => {
+        return algosdk.decodeAddress(addr).publicKey;
+    });
+
+    const msigTxn = multisig.MultisigTransaction.from_obj_for_encoding(decodedTxn);
+
+    const blob = multisig.createMultisigTransaction(
+        msigTxn.get_obj_for_encoding(),
+        { rawSig: decodedObj.sig, myPk: algosdk.decodeAddress(txn.signer).publicKey },
+        { version: msigParams.version, threshold: msigParams.threshold, pks }
+    );
+
+    // Another signature
+    const multisigTransaction = algosdk.appendSignMultisigTransaction(
+        blob,
+        msigParams,
+        secretKey.sk
+    );
+
+    await algodClient.sendRawTransaction(multisigTransaction.blob).do();
 })();
 `;
 
 
-class PaymentRekeyed extends Component<IRekeyPaymentProps, IRekeyPaymentState> {
+class MultisigPayment extends Component<IMSigPaymentProps, IMSigPaymentState> {
     private addressMask: Array<RegExp>;
 
-    constructor(props: IRekeyPaymentProps) {
+    constructor(props: IMSigPaymentProps) {
 		super(props);
 
         const { accounts } = this.props;
+
+        msigParams.addrs = [
+            secretKey.addr,
+            accounts[0].address
+        ];
 
 		this.state = {
             accounts,
             from: accounts[0],
             isOpenDropdownFrom: false,
 
-            fromRekeyed: "",
-            validFrom: false,
+            msigAddr: algosdk.multisigAddress(msigParams),
 
             to: "",
             validTo: false,
@@ -96,18 +126,22 @@ class PaymentRekeyed extends Component<IRekeyPaymentProps, IRekeyPaymentState> {
         this.onToggleFrom = this.onToggleFrom.bind(this);
         this.onFromSelected = this.onFromSelected.bind(this);
         this.onChangeTo = this.onChangeTo.bind(this);
-        this.onChangeFrom = this.onChangeFrom.bind(this);
         this.onChangeAmount = this.onChangeAmount.bind(this);
         this.onChangeNote = this.onChangeNote.bind(this);
         this.onSubmitPaymentTx = this.onSubmitPaymentTx.bind(this);
 	}
 
-    componentDidUpdate(prevProps: IRekeyPaymentProps): void {
+    componentDidUpdate(prevProps: IMSigPaymentProps): void {
 		if (this.props.accounts !== prevProps.accounts) {
 			const accounts = this.props.accounts;
+            msigParams.addrs = [
+                secretKey.addr,
+                accounts[0].address
+            ];
 			this.setState({
                 accounts,
-                from: accounts[0]
+                from: accounts[0],
+                msigAddr: algosdk.multisigAddress(msigParams),
 			});
 		}
 	}
@@ -125,8 +159,13 @@ class PaymentRekeyed extends Component<IRekeyPaymentProps, IRekeyPaymentState> {
 	}
 
     onFromSelected(account: Accounts): void {
+        msigParams.addrs = [
+            secretKey.addr,
+            account.address
+        ];
 		this.setState({
-			from: account
+			from: account,
+            msigAddr: algosdk.multisigAddress(msigParams),
 		});
 	}
 
@@ -143,22 +182,6 @@ class PaymentRekeyed extends Component<IRekeyPaymentProps, IRekeyPaymentState> {
 		this.setState({
 			to,
             validTo
-		});
-	}
-
-    async onChangeFrom(event: ChangeEvent<HTMLInputElement>): Promise<void> {
-		event.persist();
-
-        const from = event.target.value;
-        let validFrom = true;
-
-        if (!validateAddress(from)) {
-			validFrom = false;
-		}
-    
-		this.setState({
-			fromRekeyed: from,
-            validFrom
 		});
 	}
 
@@ -187,47 +210,69 @@ class PaymentRekeyed extends Component<IRekeyPaymentProps, IRekeyPaymentState> {
     async onSubmitPaymentTx(event: FormEvent<HTMLFormElement>): Promise<void> {
 		event.preventDefault();
         const { connection } = this.props;
-        const { from, to, amount, noteb64, fromRekeyed } = this.state;
+        const { from, to, amount, noteb64 } = this.state;
     
         try {
-            const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io', '');
-            const params = await algodClient.getTransactionParams().do();
+            // const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io', '');
+            // const params = await algodClient.getTransactionParams().do();
 
-            const txn: PaymentTxn = {
-                fee: 1000,
-                flatFee: true,
-                type: "pay",
-                signer: from.address,
-                from: fromRekeyed, 
-                to,
-                amount: fromDecimal(amount ? amount : "0", 6),
-                note: noteb64,
-                firstRound: params.firstRound,
-                lastRound: params.lastRound,
-                genesisHash: params.genesisHash,
-                genesisID: params.genesisID,
-            };
+            // const txn: PaymentTxn = {
+            //     fee: 1000,
+            //     flatFee: true,
+            //     type: "pay",
+            //     signer: from.address,
+            //     from: algosdk.multisigAddress(msigParams),
+            //     to,
+            //     amount: fromDecimal(amount ? amount : "0", 6),
+            //     note: noteb64,
+            //     firstRound: params.firstRound,
+            //     lastRound: params.lastRound,
+            //     genesisHash: params.genesisHash,
+            //     genesisID: params.genesisID,
+            // };
 
-            if (!txn.note || txn.note.length === 0)
-                delete txn.note;
+            // if (!txn.note || txn.note.length === 0)
+            //     delete txn.note;
           
-            const signedTxn = await connection.signTransaction(txn);
+            // const signedTxn = await connection.signTransaction(txn);
 
-            let response;
-            if (!Array.isArray(signedTxn))
-                response = await algodClient.sendRawTransaction(signedTxn.blob).do();
+            // // MyAlgo Signature
+            // // @ts-ignore
+            // const decodedObj: algosdk.EncodedSignedTransaction = algosdk.decodeObj(signedTxn.blob);
+            // const decodedTxn = decodedObj.txn;
 
-            this.setState({
-                response,
-                to: "",
-                fromRekeyed: "",
-                validFrom: false,
-                validTo: false,
-                amount: "",
-                validAmount: false,
-                note: "",
-                validNote: false
-            });
+            // const pks = msigParams.addrs.map((addr: string) => {
+            //     return algosdk.decodeAddress(addr).publicKey;
+            // });
+        
+            // const msigTxn = multisig.MultisigTransaction.from_obj_for_encoding(decodedTxn);
+
+            // const blob = multisig.createMultisigTransaction(
+            //     msigTxn.get_obj_for_encoding(),
+            //     { rawSig: decodedObj.sig, myPk: algosdk.decodeAddress(txn.signer).publicKey },
+            //     { version: msigParams.version, threshold: msigParams.threshold, pks }
+            // );
+
+            // // Test signature
+            // const multisigTransaction = algosdk.appendSignMultisigTransaction(
+            //     blob,
+            //     msigParams,
+            //     secretKey.sk
+            // );
+
+            // let response;
+            // if (!Array.isArray(signedTxn))
+            //     response = await algodClient.sendRawTransaction(multisigTransaction.blob).do();
+
+            // this.setState({
+            //     response,
+            //     to: "",
+            //     validTo: false,
+            //     amount: "",
+            //     validAmount: false,
+            //     note: "",
+            //     validNote: false
+            // });
         }
         catch(err) {
             this.setState({ response: err.message, });
@@ -236,14 +281,14 @@ class PaymentRekeyed extends Component<IRekeyPaymentProps, IRekeyPaymentState> {
 
     render(): ReactNode {
         const { isOpenDropdownFrom, accounts, from, to, validTo,
-            amount, validAmount, note, validNote, response, fromRekeyed, validFrom } = this.state;
+            amount, validAmount, note, msigAddr, response } = this.state;
 
         return (
             <Container className="mt-5 pb-5">
                 <Row className="mt-4">
                     <Col xs="12" sm="6">
-                        <h1>Payment transaction with a rekeyed address</h1>
-                        <p>Make a payment transaction with a rekeyed account</p>
+                        <h1>Multisig payment transaction</h1>
+                        <p>Make a payment transaction with a multisig account</p>
                     </Col>
                 </Row>
                 <Row>
@@ -254,7 +299,7 @@ class PaymentRekeyed extends Component<IRekeyPaymentProps, IRekeyPaymentState> {
                         >
                             <FormGroup className="align-items-center">
                                 <Label className="tx-label">
-                                    Signer
+                                    From
                                 </Label>
                                 <Dropdown
                                     className="from-dropdown"
@@ -285,19 +330,19 @@ class PaymentRekeyed extends Component<IRekeyPaymentProps, IRekeyPaymentState> {
                             </FormGroup>
                             <FormGroup className="align-items-center">
                                 <Label className="tx-label">
-                                    From
+                                    Multisig Address
                                 </Label>
                                 <MaskedInput
                                     className="form-control tx-input"
                                     mask={this.addressMask}
-                                    value={fromRekeyed}
+                                    value={msigAddr}
                                     placeholder=""
                                     placeholderChar=" "
                                     guide={false}
-                                    onChange={this.onChangeFrom}
+                                    disabled={true}
                                     required
                                 />
-						    </FormGroup>
+                            </FormGroup>
                             <FormGroup className="align-items-center">
                                 <Label className="tx-label">
                                     To
@@ -345,7 +390,7 @@ class PaymentRekeyed extends Component<IRekeyPaymentProps, IRekeyPaymentState> {
                                 color="primary"
                                 block
                                 type="submit"
-                                disabled={!validTo || !validAmount || !validFrom}
+                                disabled={!validTo || !validAmount}
                             >
                                 Submit
                             </Button>
@@ -375,4 +420,4 @@ class PaymentRekeyed extends Component<IRekeyPaymentProps, IRekeyPaymentState> {
     }
 }
 
-export default PaymentRekeyed;
+export default MultisigPayment;

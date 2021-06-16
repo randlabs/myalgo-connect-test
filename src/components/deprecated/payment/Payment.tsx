@@ -4,10 +4,10 @@ import { Container, Row, Col, Form, FormGroup, Label, Input,
 import MyAlgo, { Accounts, Address, SignedTx, PaymentTxn } from '@randlabs/myalgo-connect';
 import MaskedInput from 'react-text-mask';
 import NumberFormat, { NumberFormatValues } from 'react-number-format';
-import algosdk from 'algosdk';
+import algosdk from "algosdk";
 
-import { fromDecimal, validateAddress } from '../../utils/algorand';
-import PrismCode from '../code/Code';
+import { fromDecimal, validateAddress } from '../../../utils/algorand';
+import PrismCode from '../../commons/code/Code';
 
 
 interface IPaymentProps {
@@ -174,24 +174,35 @@ class Payment extends Component<IPaymentProps, IPaymentState> {
             const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io', '');
             const params = await algodClient.getTransactionParams().do();
 
-            const txn: PaymentTxn = {
-                fee: 1000,
-                flatFee: true,
-                type: "pay",
-                from: from.address,
-                to,
-                amount: fromDecimal(amount ? amount : "0", 6),
-                note: noteb64,
-                firstRound: params.firstRound,
-                lastRound: params.lastRound,
-                genesisHash: params.genesisHash,
-                genesisID: params.genesisID,
-            };
+            // const txn: PaymentTxn = {
+            //     fee: 1000,
+            //     flatFee: true,
+            //     type: "pay",
+            //     from: from.address,
+            //     to,
+            //     amount: fromDecimal(amount ? amount : "0", 6),
+            //     note: noteb64,
+            //     firstRound: params.firstRound,
+            //     lastRound: params.lastRound,
+            //     genesisHash: params.genesisHash,
+            //     genesisID: params.genesisID,
+            // };
 
-            if (!txn.note || txn.note.length === 0)
-                delete txn.note;
+            // if (!txn.note || txn.note.length === 0)
+            //     delete txn.note;
+
+            const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+                suggestedParams: {
+                    ...params,
+                    fee: 1000,
+                    flatFee: true,
+                },
+                from: from.address,
+                to, note: noteb64,
+                amount: fromDecimal(amount ? amount : "0", 6),
+            })
           
-            const signedTxn = await connection.signTransaction(txn);
+            const signedTxn = await connection.signTransaction(txn.toByte());
 
             const response = await algodClient.sendRawTransaction(signedTxn.blob).do();
 
@@ -206,6 +217,7 @@ class Payment extends Component<IPaymentProps, IPaymentState> {
             });
         }
         catch(err) {
+            console.error(err)
             this.setState({ response: err.message, });
         }
     }

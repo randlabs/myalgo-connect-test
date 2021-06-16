@@ -1,120 +1,83 @@
 import React, { Component, ReactNode, ChangeEvent, FormEvent, ReactElement } from 'react';
 import { Container, Row, Col, Form, FormGroup, Label, Input,
     Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button } from 'reactstrap';
-import MyAlgo, { Accounts, Address, SignedTx, PaymentTxn } from '@randlabs/myalgo-connect';
+import MyAlgo, { SignedTx, Accounts, ApplTxn, PaymentTxn } from '@randlabs/myalgo-connect';
 import MaskedInput from 'react-text-mask';
 import NumberFormat, { NumberFormatValues } from 'react-number-format';
-import algosdk from 'algosdk';
-import multisig from 'algosdk/src/multisig';
+import algosdk from "algosdk";
+import PrismCode from '../../commons/code/Code';
+import { fromDecimal } from '../../../utils/algorand';
 
 
-import { fromDecimal, validateAddress } from '../../utils/algorand';
-import PrismCode from '../code/Code';
-
-
-const secretKey = algosdk.mnemonicToSecretKey("adapt cart soul such autumn post achieve polar sugar start hour avocado race believe toward goose juice crucial walk wisdom carry lamp recycle ability enough");
-
-const msigParams: any = {
-    version: 1,
-    threshold: 2,
-    addrs: [],
-};
-
-interface IMSigPaymentProps {
+interface IApplCallNoOpProps {
     connection: MyAlgo;
     accounts: Accounts[];
 }
 
-interface IMSigPaymentState {
+interface IApplCallNoOpState {
     accounts: Accounts[];
     from: Accounts;
     isOpenDropdownFrom: boolean;
 
-    msigAddr: Address;
-
-    to: Address;
-    validTo: boolean;
-
     amount: string;
     validAmount: boolean;
 
-    note: string;
-    validNote: boolean;
-
-	noteb64: Uint8Array;
     response: any;
 }
 
 const code = `
 (async () => {
-    const txn = {
+    const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io', '');
+    const params = await algodClient.getTransactionParams().do();
+
+    const applTx: ApplTxn = {
         ...params,
-        type: 'pay',
-        signer: accounts[0].address,
-        from: multisigAccount,
-        to:  '...',
-        amount: 1000000, // 1 algo
-        note: new Uint8Array(Buffer.from('...')),
+        type: "appl",
+        appIndex: this.appIndex,
+        appOnComplete: 0, // OnApplicationComplete.NoOpOC
+        from: accounts[0].address,
     };
+
+    const payTx: PaymentTxn = {
+        ...params,
+        type: "pay",
+        to: "SXCVUTCSODUAAP5QIXWWRHV4JV6YHQI5WKWNAISG3AFNVUIVBCKK7RG2SU, // Escrow address
+        amount: 1000,
+        from: accounts[0].address,
+    }
+
+    // Assign group ID
+    const txArr = [ applTx, payTx ];
+    const groupID = algosdk.computeGroupID(txArr)
+    for (let i = 0; i < 2; i++) {
+      txArr[i].group = groupID;
+    }
   
-    // MyAlgo Signature
-    const decodedObj = algosdk.decodeObj(signedTxn.blob);
-    const decodedTxn = decodedObj.txn;
-
-    const pks = msigParams.addrs.map((addr: string) => {
-        return algosdk.decodeAddress(addr).publicKey;
-    });
-
-    const msigTxn = multisig.MultisigTransaction.from_obj_for_encoding(decodedTxn);
-
-    const blob = multisig.createMultisigTransaction(
-        msigTxn.get_obj_for_encoding(),
-        { rawSig: decodedObj.sig, myPk: algosdk.decodeAddress(txn.signer).publicKey },
-        { version: msigParams.version, threshold: msigParams.threshold, pks }
-    );
-
-    // Another signature
-    const multisigTransaction = algosdk.appendSignMultisigTransaction(
-        blob,
-        msigParams,
-        secretKey.sk
-    );
-
-    await algodClient.sendRawTransaction(multisigTransaction.blob).do();
+    // Sign and send transactions
+    const signedTxn = await connection.signTransaction(txArr);
+    await algodClient.sendRawTransaction(signedTxn.map(tx => tx.blob)).do();
 })();
 `;
 
 
-class MultisigPayment extends Component<IMSigPaymentProps, IMSigPaymentState> {
+class Payment extends Component<IApplCallNoOpProps, IApplCallNoOpState> {
     private addressMask: Array<RegExp>;
+    private appIndex = 14241387;
+    private escrowAddress = "SXCVUTCSODUAAP5QIXWWRHV4JV6YHQI5WKWNAISG3AFNVUIVBCKK7RG2SU";
 
-    constructor(props: IMSigPaymentProps) {
+    constructor(props: IApplCallNoOpProps) {
 		super(props);
 
         const { accounts } = this.props;
-
-        msigParams.addrs = [
-            secretKey.addr,
-            accounts[0].address
-        ];
 
 		this.state = {
             accounts,
             from: accounts[0],
             isOpenDropdownFrom: false,
 
-            msigAddr: algosdk.multisigAddress(msigParams),
-
-            to: "",
-            validTo: false,
-
             amount: "",
             validAmount: false,
 
-            note: "",
-            validNote: false,
-
-            noteb64: new Uint8Array(),
 			response: null
 		};
 
@@ -126,25 +89,25 @@ class MultisigPayment extends Component<IMSigPaymentProps, IMSigPaymentState> {
         this.onClearResponse = this.onClearResponse.bind(this);
         this.onToggleFrom = this.onToggleFrom.bind(this);
         this.onFromSelected = this.onFromSelected.bind(this);
-        this.onChangeTo = this.onChangeTo.bind(this);
         this.onChangeAmount = this.onChangeAmount.bind(this);
-        this.onChangeNote = this.onChangeNote.bind(this);
         this.onSubmitPaymentTx = this.onSubmitPaymentTx.bind(this);
 	}
 
-    componentDidUpdate(prevProps: IMSigPaymentProps): void {
+    componentDidUpdate(prevProps: IApplCallNoOpProps): void {
 		if (this.props.accounts !== prevProps.accounts) {
 			const accounts = this.props.accounts;
-            msigParams.addrs = [
-                secretKey.addr,
-                accounts[0].address
-            ];
 			this.setState({
                 accounts,
-                from: accounts[0],
-                msigAddr: algosdk.multisigAddress(msigParams),
+                from: accounts[0]
 			});
 		}
+	}
+
+    onChangeAmount(values: NumberFormatValues): void {
+		this.setState({
+			amount: values.value,
+            validAmount: typeof values.floatValue !== "undefined" && values.floatValue > 0
+		});
 	}
 
     onClearResponse(): void {
@@ -160,120 +123,60 @@ class MultisigPayment extends Component<IMSigPaymentProps, IMSigPaymentState> {
 	}
 
     onFromSelected(account: Accounts): void {
-        msigParams.addrs = [
-            secretKey.addr,
-            account.address
-        ];
 		this.setState({
-			from: account,
-            msigAddr: algosdk.multisigAddress(msigParams),
+			from: account
 		});
 	}
 
-    async onChangeTo(event: ChangeEvent<HTMLInputElement>): Promise<void> {
-		event.persist();
-
-        const to = event.target.value;
-        let validTo = true;
-
-        if (!validateAddress(to)) {
-			validTo = false;
-		}
-    
-		this.setState({
-			to,
-            validTo
-		});
-	}
-
-    onChangeAmount(values: NumberFormatValues): void {
-		this.setState({
-			amount: values.value,
-            validAmount: typeof values.floatValue !== "undefined" && values.floatValue > 0
-		});
-	}
-
-    onChangeNote(event: ChangeEvent<HTMLInputElement>): void {
-        const note = event.target.value;
-        let noteb64;
-
-		if (note) {
-			noteb64 = new Uint8Array(Buffer.from(note, "ascii"));
-		}
-
-		this.setState({
-			note,
-            validNote: note.length > 0,
-			noteb64: typeof noteb64 !== "undefined" ? noteb64 : new Uint8Array()
-		});
-	}
 
     async onSubmitPaymentTx(event: FormEvent<HTMLFormElement>): Promise<void> {
 		event.preventDefault();
         const { connection } = this.props;
-        const { from, to, amount, noteb64 } = this.state;
-    
+        const { from, amount } = this.state;
         try {
             const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io', '');
             const params = await algodClient.getTransactionParams().do();
 
-            const txn: PaymentTxn = {
+            const applTx: any = {
                 fee: 1000,
                 flatFee: true,
-                type: "pay",
-                signer: from.address,
-                from: algosdk.multisigAddress(msigParams),
-                to,
-                amount: fromDecimal(amount ? amount : "0", 6),
-                note: noteb64,
+                type: "appl",
+                appIndex: this.appIndex,
+                appOnComplete: 0,
+                from: from.address,
                 firstRound: params.firstRound,
                 lastRound: params.lastRound,
                 genesisHash: params.genesisHash,
                 genesisID: params.genesisID,
             };
 
-            if (!txn.note || txn.note.length === 0)
-                delete txn.note;
+            const payTx: any = {
+                fee: 1000,
+                flatFee: true,
+                type: "pay",
+                to: this.escrowAddress,
+                amount: fromDecimal(amount ? amount : "0", 6),
+                from: from.address,
+                firstRound: params.firstRound,
+                lastRound: params.lastRound,
+                genesisHash: params.genesisHash,
+                genesisID: params.genesisID,  
+            }
+
+            const txArr = [ applTx, payTx ];
+
+            const groupID = algosdk.computeGroupID(txArr)
+
+            for (let i = 0; i < 2; i++) {
+              txArr[i].group = groupID;
+            }
           
-            const signedTxn = await connection.signTransaction(txn);
-
-            // MyAlgo Signature
             // @ts-ignore
-            const decodedObj = algosdk.decodeObj(signedTxn.blob);
-            const decodedTxn = decodedObj.txn;
+            const signedTxn: SignedTx[] = await connection.signTransaction(txArr);
+            
+            const response = await algodClient.sendRawTransaction(signedTxn.map(tx => tx.blob)).do();
 
-            const pks = msigParams.addrs.map((addr: string) => {
-                return algosdk.decodeAddress(addr).publicKey;
-            });
-        
-            const msigTxn = multisig.MultisigTransaction.from_obj_for_encoding(decodedTxn);
-
-            const blob = multisig.createMultisigTransaction(
-                msigTxn.get_obj_for_encoding(),
-                { rawSig: decodedObj.sig, myPk: algosdk.decodeAddress(txn.signer).publicKey },
-                { version: msigParams.version, threshold: msigParams.threshold, pks }
-            );
-
-            // Test signature
-            const multisigTransaction = algosdk.appendSignMultisigTransaction(
-                blob,
-                msigParams,
-                secretKey.sk
-            );
-
-            let response;
-            if (!Array.isArray(signedTxn))
-                response = await algodClient.sendRawTransaction(multisigTransaction.blob).do();
-
-            this.setState({
-                response,
-                to: "",
-                validTo: false,
-                amount: "",
-                validAmount: false,
-                note: "",
-                validNote: false
-            });
+            this.setState({ response });
         }
         catch(err) {
             this.setState({ response: err.message, });
@@ -281,15 +184,14 @@ class MultisigPayment extends Component<IMSigPaymentProps, IMSigPaymentState> {
     }
 
     render(): ReactNode {
-        const { isOpenDropdownFrom, accounts, from, to, validTo,
-            amount, validAmount, note, msigAddr, response } = this.state;
+        const { isOpenDropdownFrom, accounts, from, response, amount, validAmount } = this.state;
 
         return (
             <Container className="mt-5 pb-5">
                 <Row className="mt-4">
                     <Col xs="12" sm="6">
-                        <h1>Multisig payment transaction</h1>
-                        <p>Make a payment transaction with a multisig account</p>
+                        <h1>Application Call transaction</h1>
+                        <p>Make an appl NoOp transaction</p>
                     </Col>
                 </Row>
                 <Row>
@@ -331,12 +233,26 @@ class MultisigPayment extends Component<IMSigPaymentProps, IMSigPaymentState> {
                             </FormGroup>
                             <FormGroup className="align-items-center">
                                 <Label className="tx-label">
-                                    Multisig Address
+                                    App Index
                                 </Label>
                                 <MaskedInput
                                     className="form-control tx-input"
                                     mask={this.addressMask}
-                                    value={msigAddr}
+                                    value={this.appIndex}
+                                    placeholder=""
+                                    placeholderChar=" "
+                                    guide={false}
+                                    disabled={true}
+                                />
+						    </FormGroup>
+                            <FormGroup className="align-items-center">
+                                <Label className="tx-label">
+                                    Escrow Address
+                                </Label>
+                                <MaskedInput
+                                    className="form-control tx-input"
+                                    mask={this.addressMask}
+                                    value={this.escrowAddress}
                                     placeholder=""
                                     placeholderChar=" "
                                     guide={false}
@@ -344,21 +260,6 @@ class MultisigPayment extends Component<IMSigPaymentProps, IMSigPaymentState> {
                                     required
                                 />
                             </FormGroup>
-                            <FormGroup className="align-items-center">
-                                <Label className="tx-label">
-                                    To
-                                </Label>
-                                <MaskedInput
-                                    className="form-control tx-input"
-                                    mask={this.addressMask}
-                                    value={to}
-                                    placeholder=""
-                                    placeholderChar=" "
-                                    guide={false}
-                                    onChange={this.onChangeTo}
-                                    required
-                                />
-						    </FormGroup>
                             <FormGroup className="align-items-center">
                                <Label className="tx-label">
                                     Amount
@@ -374,24 +275,12 @@ class MultisigPayment extends Component<IMSigPaymentProps, IMSigPaymentState> {
                                     allowNegative={false}
                                     isNumericString={true}
                                 />
-						</FormGroup>
-                            <FormGroup>
-                                <Label className="tx-label">
-                                    Note
-                                </Label>
-                                <Input
-                                    className="tx-input note"
-                                    type="textarea"
-                                    placeholder="Note"
-                                    value={note}
-                                    onChange={this.onChangeNote}
-                                />
-                            </FormGroup>
+						    </FormGroup>
                             <Button
                                 color="primary"
                                 block
                                 type="submit"
-                                disabled={!validTo || !validAmount}
+                                disabled={!validAmount}
                             >
                                 Submit
                             </Button>
@@ -421,4 +310,4 @@ class MultisigPayment extends Component<IMSigPaymentProps, IMSigPaymentState> {
     }
 }
 
-export default MultisigPayment;
+export default Payment;

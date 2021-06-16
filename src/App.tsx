@@ -1,115 +1,65 @@
-import React, { Component, Fragment, ReactNode } from 'react';
+import React, { FC, Fragment, useState } from 'react';
 import { Container, Row, Col } from 'reactstrap';
 import MyAlgoConnect, { Accounts } from '@randlabs/myalgo-connect';
+import algosdk from "algosdk"
 
 import './App.scss';
 
-import Navbar from './components/navbar/Navbar';
-import Connect from './components/connect/Connect';
-import Payment from './components/payment/Payment';
-import PaymentRekeyed from './components/payment-rekeyed/payment-rekeyed';
-import MultisigPayment from './components/multisig-payment/multisig-payment';
-import ASATransfer from './components/asatransfer/asatransfer';
-import SignTeal from './components/signteal/signteal';
-import ApplOptIn from './components/applOptin/applOptin';
-import ApplCallNoOp from "./components/applCallNoOp/applCallNoOp";
-import ApplCloseOut from './components/applCloseOut/applCloseOut';
-import ApplCreate from './components/applCreate/applCreate';
-import ApplUpdate from './components/applUpdate/applUpdate';
-//import logo from './assets/images/MyAlgo.svg';
-import Footer from './components/footer/Footer';
+import Navbar from './components/bars/Navbar';
+import Footer from './components/bars/Footer';
 
+import Connect from './components/Connect';
 
-interface IAppState {
-    accounts: Accounts[];
-}
+const connection = new MyAlgoConnect({ bridgeUrl: "https://wallet.localhost.com:3000" });
+const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io', '');
 
-class App extends Component<{}, IAppState> {
-    private connection: MyAlgoConnect;
+let firstFetch = false;
 
-    constructor(props: {}) {
-        super(props);
+const App: FC = (): JSX.Element => {
 
-        this.state = {
-            accounts: []
+    const [ params, setParams ] = useState<algosdk.SuggestedParams>();
+    const [ accounts, setAccounts ] = useState<Accounts[]>([]);
+
+    const onCompleteConnect = (accounts: Accounts[]): void => {
+        setAccounts(accounts);
+    };
+
+    const getTransactionParams = async (): Promise<void> => {
+        try {
+            const params = await algodClient.getTransactionParams().do();
+            setParams(params);
         }
-
-        this.connection = new MyAlgoConnect("https://dev.myalgo.com/bridge");
-
-        this.onCompleteConnect = this.onCompleteConnect.bind(this);
+        catch (err) {
+            console.log(err);
+        }
+        setTimeout(getTransactionParams, 10000)
     }
 
-    onCompleteConnect(accounts: Accounts[]): void {
-        this.setState({
-            accounts
-        })
+    if (!firstFetch) {
+        firstFetch = true;
+        getTransactionParams();
     }
 
-    render(): ReactNode {
-        const { accounts } = this.state;
-
-        return (
-            <Fragment>
-                <Navbar />
-                <Container className="main-container" fluid>
-                    <Row className="main-row">
-                        <Col>
-                            <Connect
-                                connection={this.connection}
-                                onComplete={this.onCompleteConnect}
-                            />
-                            {
-                                accounts.length > 0
-                                ? <Fragment>
-                                    <Payment
-                                        connection={this.connection}
-                                        accounts={accounts}
-                                    />
-                                    {/* <PaymentRekeyed
-                                        connection={this.connection}
-                                        accounts={accounts}
-                                    /> */}
-                                    <MultisigPayment
-                                        connection={this.connection}
-                                        accounts={accounts}
-                                    />
-                                    <SignTeal
-                                        connection={this.connection}
-                                        accounts={accounts}
-                                    />
-                                    <ASATransfer
-                                        connection={this.connection}
-                                        accounts={accounts}
-                                    />
-                                    <ApplOptIn
-                                        connection={this.connection}
-                                        accounts={accounts}
-                                    />
-                                    <ApplCallNoOp
-                                        connection={this.connection}
-                                        accounts={accounts}
-                                    />
-                                    <ApplCloseOut
-                                        connection={this.connection}
-                                        accounts={accounts}
-                                    />
-                                    <ApplCreate
-                                        connection={this.connection}
-                                        accounts={accounts}
-                                    />
-                                    <ApplUpdate
-                                        connection={this.connection}
-                                        accounts={accounts}
-                                    />
-                                </Fragment> : null
-                            }
-                        </Col>
-                    </Row>
-                </Container>
-                <Footer />
-            </Fragment>
-        );
-    }
+    return (
+        <Fragment>
+            <Navbar />
+            <Container className="main-container" fluid>
+                <Row className="main-row">
+                    <Col>
+                        <Connect
+                            connection={connection}
+                            onComplete={onCompleteConnect}
+                        />
+                        {
+                            accounts.length > 0 && params
+                            ? <Fragment></Fragment> : null
+                        }
+                    </Col>
+                </Row>
+            </Container>
+            <Footer />
+        </Fragment>
+    );
 }
 
 export default App;
