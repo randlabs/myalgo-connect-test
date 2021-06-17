@@ -22,9 +22,9 @@ const txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
     },
     from: sender,
     to: receiver,
-    amount: amount,
-    note,
-    assetIndex: assetIndex
+    assetIndex: assetIndex,
+    amount: 1000000, // 1 Algo
+    note: note,
 });
 
 const signedTxn = await connection.signTransaction(txn.toByte());
@@ -34,11 +34,11 @@ const anotherAlternativeCode = `
 const txn = {
     ...params,
     type: 'axfer',
-    from: from,
-    to: to,
+    from: sender,
+    to: receiver,
     assetIndex: assetIndex,
     amount: 1000000, // 1 Algo
-    note: new Uint8Array(Buffer.from('...')),
+    note: note,
 };
 
 const signedTxn = await connection.signTransaction(txn);
