@@ -11,39 +11,40 @@ import { fromDecimal } from "../../utils/algorand";
 import { connection, algodClient } from '../../utils/connections';
 import { AccountsContext } from "../../context/accountsContext";
 import "./all.scss";
+import AssetIndex from "../commons/AssetId";
 
-const codeV1 = `
-const txn: any = {
-    ...params,
-    fee: 1000,
-    flatFee: true,
-    type: "pay",
-    from: sender,
-    to: receiver,
-    amount: 1000000, // 1 Algo
-    note: new Uint8Array(Buffer.from("...")),
-};
-
-const signedTxn = await connection.signTransaction(txn);
-`;
-
-const codeV2 = `
-const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+const algoSdkCode = `
+const txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
     suggestedParams: {
         ...params,
         fee: 1000,
         flatFee: true,
     },
     from: sender,
-    to: receiver, 
-    amount: 1000000, // 1 Algo
-    note: note
+    to: receiver,
+    amount: amount,
+    note,
+    assetIndex: assetIndex
 });
 
 const signedTxn = await connection.signTransaction(txn.toByte());
 `;
 
-export default function Payment(): JSX.Element {
+const anotherAlternativeCode = `
+const txn = {
+    ...params,
+    type: 'axfer',
+    from: from,
+    to: to,
+    assetIndex: assetIndex,
+    amount: 1000000, // 1 Algo
+    note: new Uint8Array(Buffer.from('...')),
+};
+
+const signedTxn = await connection.signTransaction(txn);
+`;
+
+export default function AsaTransfer(): JSX.Element {
     const params = useContext(ParamsContext);
     const accounts = useContext(AccountsContext);
 
@@ -51,6 +52,7 @@ export default function Payment(): JSX.Element {
     const [sender, setSender] = useState(accounts[0].address);
     const [receiver, setReceiver] = useState("");
     const [amount, setAmount] = useState(0);
+    const [assetIndex, setAssetIndex] = useState(0);
     const [response, setResponse] = useState("");
     const [activeTab, setActiveTab] = useState('1');
 
@@ -58,13 +60,13 @@ export default function Payment(): JSX.Element {
         if (activeTab !== tab) setActiveTab(tab);
     }
 
-    const onSubmitPaymentTx = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
+    const onSubmitAsaTransferTx = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
         event.preventDefault();
-
+       
         try {
             if (!params || sender.length === 0 || receiver.length === 0) return;
 
-            const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+            const txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
                 suggestedParams: {
                     ...params,
                     fee: 1000,
@@ -73,6 +75,7 @@ export default function Payment(): JSX.Element {
                 from: sender,
                 to: receiver, note,
                 amount: fromDecimal(amount ? amount : "0", 6),
+                assetIndex: assetIndex
             });
 
             const signedTxn = await connection.signTransaction(txn.toByte());
@@ -89,8 +92,8 @@ export default function Payment(): JSX.Element {
     return <Container className="mt-5 pb-5">
         <Row className="mt-4">
             <Col xs="12" sm="6">
-                <h1>Payment transaction</h1>
-                <p>Make a payment transaction</p>
+                <h1>ASA transfer transaction</h1>
+                <p>Make an Algorand ASA transfer transaction (with note)</p>
             </Col>
         </Row>
         <div>
@@ -114,10 +117,11 @@ export default function Payment(): JSX.Element {
                 <TabPane tabId="1">
                     <Row className="mt-3">
                         <Col xs="12" lg="6" className="mt-2">
-                            <Form id="payment-tx" onSubmit={onSubmitPaymentTx}>
+                            <Form id="payment-tx" onSubmit={onSubmitAsaTransferTx}>
                                 <SenderDropdown onSelectSender={setSender} />
                                 <Address label="To" onChangeAddress={setReceiver} />
                                 <Amount onChangeAmount={setAmount} />
+                                <AssetIndex onChangeAssetIndex={setAssetIndex} />
                                 <Note onChangeNote={setNote} />
                                 <Button color="primary" block type="submit">
                                     Submit
@@ -128,7 +132,7 @@ export default function Payment(): JSX.Element {
                             <Label className="tx-label">
                                 Response
                             </Label>
-                            <div className="txn-payment-response">
+                            <div className="txn-asa-transfer-response">
                                 <PrismCode
                                     code={response ? JSON.stringify(response, null, 1) : ""}
                                     language="js"
@@ -153,7 +157,7 @@ export default function Payment(): JSX.Element {
                                 Using Algosdk (Recommended)
                             </Label>
                             <PrismCode
-                                code={codeV2}
+                                code={algoSdkCode}
                                 language="js"
                             />
                         </Col>
@@ -162,7 +166,7 @@ export default function Payment(): JSX.Element {
                                 Another alternative
                             </Label>
                             <PrismCode
-                                code={codeV1}
+                                code={anotherAlternativeCode}
                                 language="js"
                             />
                         </Col>

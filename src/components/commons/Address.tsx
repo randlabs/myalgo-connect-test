@@ -13,7 +13,7 @@ for (let i = 58; i > 0; i--) {
     addressMask.push(/[A-Z0-9]/iu);
 }
 
-export default function Note(props: AddressProps): JSX.Element {
+export default function Address(props: AddressProps): JSX.Element {
     const [ isValid, setValid ] = useState(true);
     const [ address, setAddress ] = useState("");
     

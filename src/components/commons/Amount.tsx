@@ -6,7 +6,7 @@ interface AmountProps {
     onChangeAmount(amount: number): void;
 }
 
-export default function Note(props: AmountProps): JSX.Element {
+export default function Amount(props: AmountProps): JSX.Element {
     const [ amount, setAmount ] = useState("");
     
     const onChangeAmount = (values: NumberFormatValues): void => {

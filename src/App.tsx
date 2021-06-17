@@ -6,7 +6,8 @@ import './App.scss';
 import Footer from './components/bars/Footer';
 import Navbar from './components/bars/Navbar';
 import Connect from './components/Connect';
-import Payment from './components/operations/payment';
+import AsaTransfer from './components/operations/AsaTransfer';
+import Payment from './components/operations/Payment';
 import AccountsProvider from "./context/accountsContext";
 import ParamsProvider from "./context/paramsContext";
 import { algodClient, connection } from './utils/connections';
@@ -56,6 +57,7 @@ export default function App(): JSX.Element {
                             <ParamsProvider params = {params}>
                                 <AccountsProvider accounts = {accounts}>
                                     <Payment />
+                                    <AsaTransfer />
                                 </AccountsProvider>
                             </ParamsProvider>
                         }
