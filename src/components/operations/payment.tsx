@@ -19,7 +19,7 @@ const codeV1 = `
         type: "pay",
         from: sender,
         to: receiver,
-        amount: fromDecimal(amount ? amount : "0", 6),
+        amount: 1000000, // 1 Algo
         note: note ? Buffer.from(note).toString("base64") : "",
         firstRound: params.firstRound,
         lastRound: params.lastRound,
@@ -28,34 +28,23 @@ const codeV1 = `
     };
 
     if (!txn.note || txn.note.length === 0)
-    delete txn.note;
+        delete txn.note;
     const signedTxn = await connection.signTransaction(txn);
 `;
 
 const codeV2 = `
-(async () => {
-  try {
-    const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io', '');
-    const params = await algodClient.getTransactionParams().do();
-      
-    const txn = {
-        ...params,
-        type: 'pay',
-        from: accounts[0].address,
-        to:  '...',
-        amount: 1000000, // 1 algo
-        note: new Uint8Array(Buffer.from('...')),
-    };
-  
-    const signedTxn = await myAlgoWallet.signTransaction(txn);
-    console.log(signedTxn);
+    const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+        suggestedParams: {
+            ...params,
+            fee: 1000,
+            flatFee: true,
+        },
+        from: sender,
+        to: receiver, note,
+        amount: 1000000, // 1 Algo
+    });
 
-    await algodClient.sendRawTransaction(signedTxn.blob).do();
-  }
-  catch(err) {
-    console.error(err); 
-  }
-})();
+    const signedTxn = await connection.signTransaction(txn.toByte());
 `;
 
 export default function Payment(): JSX.Element {
