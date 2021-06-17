@@ -13,38 +13,31 @@ import { AccountsContext } from "../../context/accountsContext";
 import "./all.scss";
 
 const codeV1 = `
-    const txn: any = {
-        fee: 1000,
-        flatFee: true,
-        type: "pay",
-        from: sender,
-        to: receiver,
-        amount: 1000000, // 1 Algo
-        note: note ? Buffer.from(note).toString("base64") : "",
-        firstRound: params.firstRound,
-        lastRound: params.lastRound,
-        genesisHash: params.genesisHash,
-        genesisID: params.genesisID,
-    };
+const txn: any = {
+    ...params,
+    type: "pay",
+    from: sender,
+    to: receiver,
+    amount: 1000000, // 1 Algo
+    note: new Uint8Array(Buffer.from("...")),
+};
 
-    if (!txn.note || txn.note.length === 0)
-        delete txn.note;
-    const signedTxn = await connection.signTransaction(txn);
+const signedTxn = await connection.signTransaction(txn);
 `;
 
 const codeV2 = `
-    const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-        suggestedParams: {
-            ...params,
-            fee: 1000,
-            flatFee: true,
-        },
-        from: sender,
-        to: receiver, note,
-        amount: 1000000, // 1 Algo
-    });
+const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+    suggestedParams: {
+        ...params,
+        fee: 1000,
+        flatFee: true,
+    },
+    from: sender,
+    to: receiver, note,
+    amount: 1000000, // 1 Algo
+});
 
-    const signedTxn = await connection.signTransaction(txn.toByte());
+const signedTxn = await connection.signTransaction(txn.toByte());
 `;
 
 export default function Payment(): JSX.Element {
@@ -66,28 +59,8 @@ export default function Payment(): JSX.Element {
         event.preventDefault();
 
         try {
-            console.log(sender);
             if (!params || sender.length === 0 || receiver.length === 0) return;
 
-            /* JSON-LIKE */
-            // const txn: any = {
-            //     fee: 1000,
-            //     flatFee: true,
-            //     type: "pay",
-            //     from: sender,
-            //     to: receiver,
-            //     amount: fromDecimal(amount ? amount : "0", 6),
-            //     note: note ? Buffer.from(note).toString("base64") : "",
-            //     firstRound: params.firstRound,
-            //     lastRound: params.lastRound,
-            //     genesisHash: params.genesisHash,
-            //     genesisID: params.genesisID,
-            // };
-            // if (!txn.note || txn.note.length === 0)
-            //     delete txn.note;
-            // const signedTxn = await connection.signTransaction(txn);
-
-            /* Algosdk encoded */
             const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
                 suggestedParams: {
                     ...params,
@@ -114,7 +87,7 @@ export default function Payment(): JSX.Element {
         <Row className="mt-4">
             <Col xs="12" sm="6">
                 <h1>Payment transaction</h1>
-                <p>Make a payment transaction (with note)</p>
+                <p>Make a payment transaction</p>
             </Col>
         </Row>
         <div>
@@ -174,19 +147,19 @@ export default function Payment(): JSX.Element {
                     <Row className="mt-3">
                         <Col xs="12" lg="6">
                             <Label className="tx-label">
-                                New way
+                                Algosdk EncodedTransaction
                             </Label>
                             <PrismCode
-                                code={codeV1}
+                                code={codeV2}
                                 language="js"
                             />
                         </Col>
                         <Col xs="12" lg="6" className="mt-xs-4">
                             <Label className="tx-label">
-                                Old way
+                                Algosdk JSON-like
                             </Label>
                             <PrismCode
-                                code={codeV2}
+                                code={codeV1}
                                 language="js"
                             />
                         </Col>
