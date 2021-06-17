@@ -1,0 +1,32 @@
+.align-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.txn-payment-response {
+    max-height: 348px !important;
+    height: 100%;
+}
+
+.button-margin {
+    margin-top: 10px;
+}
+
+.code-box {
+    height: 100%;
+    max-height: 466px;
+}
+
+.code-connect{
+    height: 100%;
+    max-height: 200px !important;
+}
+
+.nav-link {
+    color: #212529;
+}
+
+.active-tab {
+    color: #245ec7 !important;
+}

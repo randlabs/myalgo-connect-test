@@ -1,17 +1,15 @@
-import React, { Fragment, useEffect, useState } from 'react';
-import { Container, Row, Col } from 'reactstrap';
 import { Accounts } from '@randlabs/myalgo-connect';
-import algosdk from "algosdk"
-import { connection, algodClient } from './utils/connections';
-
+import algosdk from "algosdk";
+import React, { Fragment, useEffect, useState } from 'react';
+import { Col, Container, Row } from 'reactstrap';
 import './App.scss';
-
-import ParamsProvider from "./context/paramsContext";
-import AccountsProvider from "./context/accountsContext";
-import Navbar from './components/bars/Navbar';
 import Footer from './components/bars/Footer';
+import Navbar from './components/bars/Navbar';
 import Connect from './components/Connect';
 import Payment from './components/operations/payment';
+import AccountsProvider from "./context/accountsContext";
+import ParamsProvider from "./context/paramsContext";
+import { algodClient, connection } from './utils/connections';
 
 let timeoutResolution: NodeJS.Timeout | null = null;
 

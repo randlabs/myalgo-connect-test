@@ -1,7 +1,8 @@
 import React, { FC, useState } from 'react';
-import { Container, Row, Col, Button } from 'reactstrap';
+import { Container, Row, Col, Button, Label } from 'reactstrap';
 import MyAlgo, { Accounts } from '@randlabs/myalgo-connect';
 import PrismCode from './commons/Code';
+import "./operations/all.scss";
 
 interface ConnectProps {
     connection: MyAlgo;
@@ -19,7 +20,6 @@ const connectToMyAlgo = async() => {
     }
 }
 `;
-
 
 const Connect: FC<ConnectProps> = (props: ConnectProps): JSX.Element => {
 
@@ -53,31 +53,40 @@ const Connect: FC<ConnectProps> = (props: ConnectProps): JSX.Element => {
             </Row>
             <Row>
                 <Col xs="12" lg="6">
+                    <Label className="tx-label">
+                        Code
+                    </Label>
+                    <div className="connect-code">
+                        <PrismCode
+                            code={code}
+                            language="js"
+                        />
+                    </div>
                     <Button
+                        className="button-margin"
                         color="primary"
                         block
-                        onClick={connectToMyAlgo}
-                    >
+                        onClick={connectToMyAlgo}>
                         Connect
                     </Button>
-                    <div className="response-cont">
+                </Col>
+                <Col xs="12" lg="6">
+                    <Label className="tx-label">
+                        Response
+                    </Label>
+                    <div className="code-connect">
                         <PrismCode
-                            code={accounts.length ? JSON.stringify(accounts, null, 1) : "response"}
+                            code={accounts.length ? JSON.stringify(accounts, null, 1) : ""}
                             language="js"
                             plugins={["response"]}
                         />
                     </div>
-                </Col>
-                <Col xs="12" lg="6">
-                    <PrismCode
-                        code={code}
-                        language="js"
-                    />
                     <Button
+                        className="button-margin"
                         color="primary"
+                        block
                         disabled={!accounts.length}
-                        onClick={onClearResponse}
-                    >
+                        onClick={onClearResponse}>
                         Clear Response
                     </Button>
                 </Col>

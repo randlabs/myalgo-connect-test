@@ -77,7 +77,6 @@ h1 {
 }
 
 .btn-primary {
-  margin: .5em 0;
   font-size: 0.825rem !important;
   height: 40px !important;
   background-color: #245ec7 !important;
@@ -147,14 +146,9 @@ h1 {
   }
 }
 
-.response-cont {
-  min-height: 190px !important;
-}
-
 .response {
   font-size: 0.75rem !important;
-  max-height: 190px !important;
-
+  height: 100% !important;
 }
 
 .tx-label {
