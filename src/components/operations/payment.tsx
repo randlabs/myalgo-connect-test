@@ -137,7 +137,7 @@ export default function Payment(): JSX.Element {
             <TabContent activeTab={activeTab}>
                 <TabPane tabId="1">
                     <Row className="mt-3">
-                        <Col xs="6" lg="6">
+                        <Col xs="12" lg="6" className="mt-2">
                             <Form id="payment-tx" onSubmit={onSubmitPaymentTx}>
                                 <SenderDropdown onSelectSender={setSender} />
                                 <Address label="To" onChangeAddress={setReceiver} />
@@ -147,9 +147,8 @@ export default function Payment(): JSX.Element {
                                     Submit
                                 </Button>
                             </Form>
-
                         </Col>
-                        <Col xs="6" lg="6">
+                        <Col xs="12" lg="6" className="mt-2 mt-xs-2">
                             <Label className="tx-label">
                                 Response
                             </Label>
@@ -173,7 +172,7 @@ export default function Payment(): JSX.Element {
                 </TabPane>
                 <TabPane tabId="2">
                     <Row className="mt-3">
-                        <Col xs="6" lg="6">
+                        <Col xs="12" lg="6">
                             <Label className="tx-label">
                                 New way
                             </Label>
@@ -182,7 +181,7 @@ export default function Payment(): JSX.Element {
                                 language="js"
                             />
                         </Col>
-                        <Col xs="6" lg="6">
+                        <Col xs="12" lg="6" className="mt-xs-4">
                             <Label className="tx-label">
                                 Old way
                             </Label>

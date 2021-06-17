@@ -70,7 +70,7 @@ const Connect: FC<ConnectProps> = (props: ConnectProps): JSX.Element => {
                         Connect
                     </Button>
                 </Col>
-                <Col xs="12" lg="6">
+                <Col xs="12" lg="6" className="mt-xs-2">
                     <Label className="tx-label">
                         Response
                     </Label>
