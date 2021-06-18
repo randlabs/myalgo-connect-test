@@ -1,6 +1,6 @@
 import { Accounts } from '@randlabs/myalgo-connect';
 import algosdk from "algosdk";
-import React, { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Col, Container, Row } from 'reactstrap';
 import './App.scss';
 import Footer from './components/bars/Footer';
@@ -9,7 +9,7 @@ import Connect from './components/Connect';
 import AppCloseOut from './components/operations/ApplCloseOut';
 import AppOptIn from './components/operations/ApplOptIn';
 import AsaTransfer from './components/operations/AsaTransfer';
-import Payment from './components/operations/payment';
+import Payment from './components/operations/Payment';
 import SignTeal from './components/operations/Signteal';
 import AccountsProvider from "./context/accountsContext";
 import ParamsProvider from "./context/paramsContext";
