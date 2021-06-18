@@ -9,7 +9,8 @@ import Connect from './components/Connect';
 import AppCloseOut from './components/operations/ApplCloseOut';
 import AppOptIn from './components/operations/ApplOptIn';
 import AsaTransfer from './components/operations/AsaTransfer';
-import Payment from './components/operations/Payment';
+import Payment from './components/operations/payment';
+import SignTeal from './components/operations/Signteal';
 import AccountsProvider from "./context/accountsContext";
 import ParamsProvider from "./context/paramsContext";
 import { algodClient, connection } from './utils/connections';
@@ -62,6 +63,7 @@ export default function App(): JSX.Element {
                                     <AsaTransfer />
                                     <AppOptIn />
                                     <AppCloseOut />
+                                    <SignTeal />
                                 </AccountsProvider>
                             </ParamsProvider>
                         }
