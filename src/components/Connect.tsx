@@ -44,14 +44,14 @@ const Connect: FC<ConnectProps> = (props: ConnectProps): JSX.Element => {
     }
 
     return (
-        <Container className="mt-5 pb-5">
+        <Container className="mt-5">
             <Row className="mt-4">
                 <Col>
                     <h1>Connect</h1>
                     <p>Connect to My Algo</p>
                 </Col>
             </Row>
-            <Row>
+            <Row className="connect-content">
                 <Col xs="12" lg="6">
                     <Label className="tx-label">
                         Code
@@ -74,7 +74,7 @@ const Connect: FC<ConnectProps> = (props: ConnectProps): JSX.Element => {
                     <Label className="tx-label">
                         Response
                     </Label>
-                    <div className="code-connect">
+                    <div className="response-base code-connect">
                         <PrismCode
                             code={accounts.length ? JSON.stringify(accounts, null, 1) : ""}
                             language="js"

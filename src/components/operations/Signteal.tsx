@@ -118,7 +118,7 @@ export default function SignTeal(): JSX.Element {
         setTeal("");
     }
 
-    return <Container className="mt-5 pb-5">
+    return <Container className="mt-5">
     <Row className="mt-4">
         <Col xs="12" sm="6">
             <h1>Payment transaction with teal</h1>
@@ -167,7 +167,7 @@ export default function SignTeal(): JSX.Element {
                         <Label className="tx-label">
                             Response
                         </Label>
-                        <div className="txn-payment-response">
+                        <div className="response-base txn-payment-response">
                             <PrismCode
                                 code={response ? JSON.stringify(response, null, 1) : ""}
                                 language="js"

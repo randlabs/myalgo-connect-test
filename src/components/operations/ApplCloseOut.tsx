@@ -81,7 +81,7 @@ export default function AppCloseOut(): JSX.Element {
         }
     }
 
-    return <Container className="mt-5 pb-5">
+    return <Container className="mt-5">
         <Row className="mt-4">
             <Col>
                 <h1>Application CloseOut transaction</h1>
@@ -122,7 +122,7 @@ export default function AppCloseOut(): JSX.Element {
                             <Label className="tx-label">
                                 Response
                             </Label>
-                            <div className="txn-optin-response">
+                            <div className="response-base txn-optin-response">
                                 <PrismCode
                                     code={response ? JSON.stringify(response, null, 1) : ""}
                                     language="js"
