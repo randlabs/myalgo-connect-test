@@ -91,9 +91,9 @@ export default function AsaTransfer(): JSX.Element {
 
     return <Container className="mt-5 pb-5">
         <Row className="mt-4">
-            <Col xs="12" sm="6">
+            <Col>
                 <h1>ASA transfer transaction</h1>
-                <p>Make an Algorand ASA transfer transaction (with note)</p>
+                <p>Make an Algorand ASA transfer transaction</p>
             </Col>
         </Row>
         <div>

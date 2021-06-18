@@ -196,7 +196,7 @@ class ApplCreate extends Component<IApplCreateProps, IApplCreateState> {
         return (
             <Container className="mt-5 pb-5">
                 <Row className="mt-4">
-                    <Col xs="12" sm="6">
+                    <Col>
                         <h1>Application Create transaction</h1>
                         <p>Make an appl create transaction</p>
                     </Col>

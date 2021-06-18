@@ -46,7 +46,7 @@ const Connect: FC<ConnectProps> = (props: ConnectProps): JSX.Element => {
     return (
         <Container className="mt-5 pb-5">
             <Row className="mt-4">
-                <Col xs="12" sm="6">
+                <Col>
                     <h1>Connect</h1>
                     <p>Connect to My Algo</p>
                 </Col>

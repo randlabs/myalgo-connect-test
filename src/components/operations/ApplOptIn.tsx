@@ -81,9 +81,9 @@ export default function AppOptIn(): JSX.Element {
 
     return <Container className="mt-5 pb-5">
         <Row className="mt-4">
-            <Col xs="12" sm="6">
+            <Col>
                 <h1>Application Opt-In transaction</h1>
-                <p>Make an appl opt-in transaction (with note)</p>
+                <p>Make an appl opt-in transaction</p>
             </Col>
         </Row>
         <div>

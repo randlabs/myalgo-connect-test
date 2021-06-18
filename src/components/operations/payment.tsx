@@ -88,7 +88,7 @@ export default function Payment(): JSX.Element {
 
     return <Container className="mt-5 pb-5">
         <Row className="mt-4">
-            <Col xs="12" sm="6">
+            <Col>
                 <h1>Payment transaction</h1>
                 <p>Make a payment transaction</p>
             </Col>
