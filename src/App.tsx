@@ -6,6 +6,8 @@ import './App.scss';
 import Footer from './components/bars/Footer';
 import Navbar from './components/bars/Navbar';
 import Connect from './components/Connect';
+import AppCloseOut from './components/operations/ApplCloseOut';
+import AppOptIn from './components/operations/ApplOptIn';
 import AsaTransfer from './components/operations/AsaTransfer';
 import Payment from './components/operations/Payment';
 import AccountsProvider from "./context/accountsContext";
@@ -58,6 +60,8 @@ export default function App(): JSX.Element {
                                 <AccountsProvider accounts = {accounts}>
                                     <Payment />
                                     <AsaTransfer />
+                                    <AppOptIn />
+                                    <AppCloseOut />
                                 </AccountsProvider>
                             </ParamsProvider>
                         }
