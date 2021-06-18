@@ -10,6 +10,7 @@ import AppCloseOut from './components/operations/ApplCloseOut';
 import AppOptIn from './components/operations/ApplOptIn';
 import AsaTransfer from './components/operations/AsaTransfer';
 import Payment from './components/operations/Payment';
+import GroupTransaction from './components/operations/GroupTransaction';
 import SignTeal from './components/operations/Signteal';
 import AccountsProvider from "./context/accountsContext";
 import ParamsProvider from "./context/paramsContext";
@@ -64,6 +65,7 @@ export default function App(): JSX.Element {
                                     <AppOptIn />
                                     <AppCloseOut />
                                     <SignTeal />
+                                    <GroupTransaction />
                                 </AccountsProvider>
                             </ParamsProvider>
                         }

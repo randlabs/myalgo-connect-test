@@ -3,24 +3,25 @@ import NumberFormat, { NumberFormatValues } from "react-number-format";
 import { FormGroup, Label } from "reactstrap";
 
 interface AmountProps {
+    label?: string,
     onChangeAmount(amount: number): void;
 }
 
 export default function Amount(props: AmountProps): JSX.Element {
-    const [ amount, setAmount ] = useState("");
-    
+    const [amount, setAmount] = useState("");
+
     const onChangeAmount = (values: NumberFormatValues): void => {
         if (typeof values.floatValue !== "undefined" && values.floatValue > 0) {
             setAmount(values.value);
-            return props.onChangeAmount(parseInt(values.value, 10));     
+            return props.onChangeAmount(parseInt(values.value, 10));
         }
         setAmount("0");
-	}
+    }
 
     return <Fragment>
         <FormGroup className="align-items-center">
             <Label className="tx-label">
-                Amount
+                {props.label ? props.label : "Amount"}
             </Label>
             <NumberFormat
                 value={amount}
