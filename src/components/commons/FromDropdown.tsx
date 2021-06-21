@@ -18,7 +18,6 @@ export default function SenderDropdown(props: SenderDropdownProps): JSX.Element 
     }
 
     const onSelectSender = (account: Accounts) => {
-        console.log(account)
         setSender(account);
         props.onSelectSender(account.address);
     }

@@ -13,12 +13,13 @@ import GroupTransaction from './components/operations/GroupTransaction';
 import SignTeal from './components/operations/Signteal';
 import ApplCreate from './components/operations/ApplCreate';
 import ApplDelete from './components/operations/ApplDelete';
+import ApplUpdate from './components/operations/ApplUpdate';
+import GroupWithTeal from './components/operations/GroupWithTeal';
 import AccountsProvider from "./context/accountsContext";
 import ParamsProvider from "./context/paramsContext";
 import { algodClient, connection } from './utils/connections';
 
 import './App.scss';
-import ApplUpdate from './components/operations/ApplUpdate';
 
 let timeoutResolution: NodeJS.Timeout | null = null;
 
@@ -37,7 +38,7 @@ export default function App(): JSX.Element {
             setParams(params);
         }
         catch (err) {
-            console.log(err);
+            console.error(err);
         }
         timeoutResolution = setTimeout(getTransactionParams, 10000);
     }
@@ -47,8 +48,6 @@ export default function App(): JSX.Element {
             clearTimeout(timeoutResolution);
         getTransactionParams();
     }, [accounts])
-
-    console.log(accounts, params)
 
     return (
         <Fragment>
@@ -65,6 +64,7 @@ export default function App(): JSX.Element {
                             <ParamsProvider params={params}>
                                 <AccountsProvider accounts={accounts}>
                                     <Payment />
+                                    <GroupWithTeal />
                                     <AsaTransfer />
                                     <AppOptIn />
                                     <AppCloseOut />
