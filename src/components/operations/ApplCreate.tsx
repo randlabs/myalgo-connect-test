@@ -7,7 +7,6 @@ import { algodClient, connection } from '../../utils/connections';
 import Integer from "../commons/Integer";
 import PrismCode from '../commons/Code';
 import SenderDropdown from "../commons/FromDropdown";
-import { CreateApplTxn } from "@randlabs/myalgo-connect";
 import "./all.scss";
 
 const codeV1 = `
@@ -17,12 +16,12 @@ const txn = {
     flatFee: true,
     type: "appl",
     from: sender,
-    appApprovalProgram: new Uint8Array(Buffer.from("AiADAAEFIjEYEkEAAiNDMRkkEg==", "base64")),
-    appClearProgram: new Uint8Array(Buffer.from("AiABASJD", "base64")),
     appLocalByteSlices: 4,
     appGlobalByteSlices: 2,
     appLocalInts: 0,
     appGlobalInts: 2,
+    appApprovalProgram: new Uint8Array(Buffer.from("AiADAAEFIjEYEkEAAiNDMRkkEg==", "base64")),
+    appClearProgram: new Uint8Array(Buffer.from("AiABASJD", "base64")),
     appOnComplete: 0,
 }
 
