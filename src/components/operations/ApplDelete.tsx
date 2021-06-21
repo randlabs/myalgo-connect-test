@@ -114,7 +114,7 @@ export default function AppDelete(): JSX.Element {
                             <Label className="tx-label">
                                 Response
                             </Label>
-                            <div className="txn-optin-response">
+                            <div className="txn-appl-delete-response">
                                 <PrismCode
                                     code={response ? JSON.stringify(response, null, 1) : ""}
                                     language="js"
