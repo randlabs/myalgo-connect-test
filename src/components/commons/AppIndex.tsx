@@ -3,12 +3,13 @@ import NumberFormat, { NumberFormatValues } from "react-number-format";
 import { FormFeedback, FormGroup, Label } from "reactstrap";
 
 interface AppIndexProps {
+    value?: string;
     disabled?: boolean;
     onChangeAppIndex(appIndex: string): void;
 }
 
-export default function Address(props: AppIndexProps): JSX.Element {
-    const [appIndex, setAppIndex] = useState("14241387");
+export default function AppIndex(props: AppIndexProps): JSX.Element {
+    const [appIndex, setAppIndex] = useState(props.value || "14241387");
 
     const onChangeAppIndex = (values: NumberFormatValues): void => {
         if (!values.value)  return;

@@ -18,6 +18,7 @@ import ParamsProvider from "./context/paramsContext";
 import { algodClient, connection } from './utils/connections';
 
 import './App.scss';
+import ApplUpdate from './components/operations/ApplUpdate';
 
 let timeoutResolution: NodeJS.Timeout | null = null;
 
@@ -71,6 +72,7 @@ export default function App(): JSX.Element {
                                     <GroupTransaction />
                                     <ApplCreate />
                                     <ApplDelete />
+                                    <ApplUpdate />
                                 </AccountsProvider>
                             </ParamsProvider>
                         }
