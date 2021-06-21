@@ -3,27 +3,29 @@ import NumberFormat, { NumberFormatValues } from "react-number-format";
 import { FormFeedback, FormGroup, Label } from "reactstrap";
 
 interface AppIndexProps {
+    label: string;
     disabled?: boolean;
-    onChangeAppIndex(appIndex: string): void;
+    onChangeNumber(int: number): void;
 }
 
 export default function Address(props: AppIndexProps): JSX.Element {
-    const [appIndex, setAppIndex] = useState("14241387");
+    const [int, setInteger] = useState(0);
 
-    const onChangeAppIndex = (values: NumberFormatValues): void => {
-        if (!values.value)  return;
-        setAppIndex(values.value);
-        props.onChangeAppIndex(values.value);
+    const onChangeNumber = (values: NumberFormatValues): void => {
+        let value = 0;
+        if (values.value) value = parseInt(values.value)
+        setInteger(value);
+        props.onChangeNumber(value);
     }
 
     return <Fragment>
         <FormGroup className="align-items-center">
             <Label className="tx-label">
-                App Index
+                {props.label}
             </Label>
             <NumberFormat
-                value={appIndex}
-                onValueChange={onChangeAppIndex}
+                value={int}
+                onValueChange={onChangeNumber}
                 className="form-control tx-input"
                 placeholder="0"
                 allowNegative={false}

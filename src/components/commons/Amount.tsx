@@ -4,6 +4,7 @@ import { FormGroup, Label } from "reactstrap";
 
 interface AmountProps {
     label?: string,
+    disabled?: boolean;
     onChangeAmount(amount: number): void;
 }
 
@@ -33,6 +34,7 @@ export default function Amount(props: AmountProps): JSX.Element {
                 decimalScale={6}
                 allowNegative={false}
                 isNumericString={true}
+                disabled={props.disabled}
             />
         </FormGroup>
     </Fragment>

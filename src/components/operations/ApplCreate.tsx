@@ -1,56 +1,62 @@
-import React, { useState, FormEvent, useContext } from "react";
-import { Button, Col, Container, Form, Label, Nav, NavItem, NavLink, Row, TabContent, TabPane } from "reactstrap";
-import Note from "../commons/Note";
-import Address from "../commons/Address";
-import Amount from "../commons/Amount";
-import SenderDropdown from "../commons/FromDropdown";
-import PrismCode from '../commons/Code';
 import algosdk from "algosdk";
-import { ParamsContext } from "../../context/paramsContext";
-import { fromDecimal } from "../../utils/algorand";
-import { connection, algodClient } from '../../utils/connections';
+import React, { FormEvent, useContext, useState } from "react";
+import { Button, Col, Container, Form, Label, Nav, NavItem, NavLink, Row, TabContent, TabPane } from "reactstrap";
 import { AccountsContext } from "../../context/accountsContext";
+import { ParamsContext } from "../../context/paramsContext";
+import { algodClient, connection } from '../../utils/connections';
+import Integer from "../commons/Integer";
+import PrismCode from '../commons/Code';
+import SenderDropdown from "../commons/FromDropdown";
+import { CreateApplTxn } from "@randlabs/myalgo-connect";
 import "./all.scss";
 
 const codeV1 = `
-const txn: any = {
+const txn = {
     ...params,
     fee: 1000,
     flatFee: true,
-    type: "pay",
+    type: "appl",
     from: sender,
-    to: receiver,
-    amount: 1000000, // 1 Algo
-    note: new Uint8Array(Buffer.from("...")),
-};
+    appApprovalProgram: new Uint8Array(Buffer.from("AiADAAEFIjEYEkEAAiNDMRkkEg==", "base64")),
+    appClearProgram: new Uint8Array(Buffer.from("AiABASJD", "base64")),
+    appLocalByteSlices: 4,
+    appGlobalByteSlices: 2,
+    appLocalInts: 0,
+    appGlobalInts: 2,
+    appOnComplete: 0,
+}
 
 const signedTxn = await connection.signTransaction(txn);
 `;
 
 const codeV2 = `
-const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+const txn = algosdk.makeApplicationCreateTxnFromObject({
     suggestedParams: {
         ...params,
         fee: 1000,
         flatFee: true,
     },
     from: sender,
-    to: receiver, 
-    amount: 1000000, // 1 Algo
-    note: note
+    numLocalByteSlices: 4,
+    numGlobalByteSlices: 2,
+    numLocalInts: 0,
+    numGlobalInts: 2,
+    approvalProgram: new Uint8Array(Buffer.from("AiADAAEFIjEYEkEAAiNDMRkkEg==", "base64")),
+    clearProgram: new Uint8Array(Buffer.from("AiABASJD", "base64")),
+    onComplete: 0,
 });
 
 const signedTxn = await connection.signTransaction(txn.toByte());
 `;
 
-export default function Payment(): JSX.Element {
+export default function AppCreate(): JSX.Element {
     const params = useContext(ParamsContext);
     const accounts = useContext(AccountsContext);
-
-    const [note, setNote] = useState<Uint8Array | undefined>();
+    const [localInt, setLocalInt] = useState(0);
+    const [globalInt, setGlobalInt] = useState(0);
+    const [localBytes, setLocalBytes] = useState(0);
+    const [globalBytes, setGlobalBytes] = useState(0);
     const [sender, setSender] = useState(accounts[0].address);
-    const [receiver, setReceiver] = useState("");
-    const [amount, setAmount] = useState(0);
     const [response, setResponse] = useState("");
     const [activeTab, setActiveTab] = useState('1');
 
@@ -58,21 +64,26 @@ export default function Payment(): JSX.Element {
         if (activeTab !== tab) setActiveTab(tab);
     }
 
-    const onSubmitPaymentTx = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
+    const onSubmitCreateAppl = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
         event.preventDefault();
 
         try {
-            if (!params || sender.length === 0 || receiver.length === 0) return;
+            if (!params || sender.length === 0) return;
 
-            const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+            const txn = algosdk.makeApplicationCreateTxnFromObject({
                 suggestedParams: {
                     ...params,
                     fee: 1000,
                     flatFee: true,
                 },
                 from: sender,
-                to: receiver, note,
-                amount: fromDecimal(amount ? amount : "0", 6),
+                numLocalByteSlices: localBytes || 0,
+                numGlobalByteSlices: globalBytes || 0,
+                numLocalInts: localInt || 0,
+                numGlobalInts: globalInt || 0,
+                approvalProgram: new Uint8Array(Buffer.from("AiADAAEFIjEYEkEAAiNDMRkkEg==", "base64")),
+                clearProgram: new Uint8Array(Buffer.from("AiABASJD", "base64")),
+                onComplete: 0,
             });
 
             const signedTxn = await connection.signTransaction(txn.toByte());
@@ -86,11 +97,11 @@ export default function Payment(): JSX.Element {
         }
     }
 
-    return <Container className="mt-5">
+    return <Container className="mt-5 pb-5">
         <Row className="mt-4">
             <Col>
-                <h1>Payment transaction</h1>
-                <p>Make a payment transaction</p>
+                <h1>Application Create transaction</h1>
+                <p>Make an appl create transaction</p>
             </Col>
         </Row>
         <div>
@@ -114,11 +125,12 @@ export default function Payment(): JSX.Element {
                 <TabPane tabId="1">
                     <Row className="mt-3">
                         <Col xs="12" lg="6" className="mt-2">
-                            <Form id="payment-tx" onSubmit={onSubmitPaymentTx}>
+                            <Form id="payment-tx" onSubmit={onSubmitCreateAppl}>
                                 <SenderDropdown onSelectSender={setSender} />
-                                <Address label="To" onChangeAddress={setReceiver} />
-                                <Amount onChangeAmount={setAmount} />
-                                <Note onChangeNote={setNote} />
+                                <Integer label="Local Bytes" onChangeNumber={setLocalBytes} />
+                                <Integer label="Global Bytes" onChangeNumber={setGlobalBytes} />
+                                <Integer label="Local Int" onChangeNumber={setLocalInt} />
+                                <Integer label="Global Int" onChangeNumber={setGlobalInt} />
                                 <Button color="primary" block type="submit">
                                     Submit
                                 </Button>
@@ -128,7 +140,7 @@ export default function Payment(): JSX.Element {
                             <Label className="tx-label">
                                 Response
                             </Label>
-                            <div className="response-base txn-payment-response">
+                            <div className="txn-optin-response">
                                 <PrismCode
                                     code={response ? JSON.stringify(response, null, 1) : ""}
                                     language="js"

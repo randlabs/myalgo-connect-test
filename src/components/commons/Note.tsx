@@ -2,6 +2,7 @@ import React, { Fragment, useState, ChangeEvent } from "react";
 import { FormGroup, Input, Label } from "reactstrap";
 
 interface NoteProps {
+    disabled?: boolean;
     onChangeNote(note: Uint8Array): void;
 }
 
@@ -24,6 +25,7 @@ export default function Note(props: NoteProps): JSX.Element {
                 placeholder="Note"
                 value={note}
                 onChange={onChangeNote}
+                disabled={props.disabled}
             />
         </FormGroup>
     </Fragment>
