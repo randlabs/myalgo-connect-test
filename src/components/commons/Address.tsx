@@ -5,7 +5,7 @@ import { FormFeedback, FormGroup, Label } from "reactstrap";
 
 interface AddressProps {
     label: string;
-    disable?: boolean;
+    disabled?: boolean;
     onChangeAddress(addr: string): void;
 }
 
@@ -43,7 +43,7 @@ export default function Address(props: AddressProps): JSX.Element {
                 placeholderChar=" "
                 guide={false}
                 onChange={onChangeAddress}
-                disabled={props.disable}
+                disabled={props.disabled}
                 required
             />
             <FormFeedback>Invalid Address</FormFeedback>

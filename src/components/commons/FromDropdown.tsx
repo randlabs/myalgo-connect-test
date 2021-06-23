@@ -4,6 +4,7 @@ import { Dropdown, DropdownItem, DropdownMenu, DropdownToggle, FormGroup, Label 
 import { AccountsContext } from "../../context/accountsContext";
 
 interface SenderDropdownProps {
+    disabled?: boolean;
     onSelectSender(sender: string): void;
 }
 
@@ -28,11 +29,12 @@ export default function SenderDropdown(props: SenderDropdownProps): JSX.Element 
                 From
             </Label>
             <Dropdown
+                disabled={props.disabled}
                 className="from-dropdown"
                 isOpen={isOpen}
                 toggle={onToggleSender}
             >
-                <DropdownToggle caret>
+                <DropdownToggle caret disabled={props.disabled}>
                     <span className="text-ellipsis">
                         {sender.name}
                     </span>

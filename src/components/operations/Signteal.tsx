@@ -109,7 +109,7 @@ export default function SignTeal(): JSX.Element {
     
             const response = await algodClient.sendRawTransaction(signedTxn.blob).do();
     
-            setResponse(JSON.stringify(response));
+            setResponse(response);
         }
         catch (err) {
             setResponse(JSON.stringify(err, null, 4));
@@ -146,22 +146,21 @@ export default function SignTeal(): JSX.Element {
             <TabPane tabId="1">
                 <Row className="mt-3">
                     <Col xs="12" lg="6" className="mt-2">
-                        {
-                            preparedTxn === null || teal.length === 0 ?
                             <Form id="payment-tx" onSubmit={onPrepareTransaction}>
-                                <SenderDropdown onSelectSender={setSender} />
-                                <Address label="To" onChangeAddress={setReceiver} />
-                                <Amount onChangeAmount={setAmount} />
-                                <Note onChangeNote={setNote} />
-                                <Button color="primary" block type="submit">
-                                    Prepare Teal
-                                </Button>
+                                <SenderDropdown onSelectSender={setSender} disabled={!!preparedTxn}/>
+                                <Address label="To" onChangeAddress={setReceiver} disabled={!!preparedTxn}/>
+                                <Amount onChangeAmount={setAmount} disabled={!!preparedTxn}/>
+                                <Note onChangeNote={setNote} disabled={!!preparedTxn}/>
+                                {
+                                    preparedTxn === null || teal.length === 0 ?
+                                    <Button color="primary" block type="submit">
+                                        Prepare Teal
+                                    </Button>
+                                    : <Button color="primary" block onClick = {onSubmitSignTeal}>
+                                        Submit
+                                    </Button>
+                                } 
                             </Form>
-                            : <Button color="primary" block onClick = {onSubmitSignTeal}>
-                                Submit
-                            </Button>
-                        }
-
                     </Col>
                     <Col xs="12" lg="6" className="mt-2 mt-xs-2">
                         <Label className="tx-label">
