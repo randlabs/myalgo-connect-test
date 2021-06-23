@@ -38,7 +38,7 @@ const signedTxn = await connection.signTransaction(txn.toByte());
 export default function AppDelete(): JSX.Element {
     const params = useContext(ParamsContext);
     const accounts = useContext(AccountsContext);
-    const [appIndex, setAppIndex] = useState("");
+    const [appIndex, setAppIndex] = useState("17140470");
     const [sender, setSender] = useState(accounts[0].address);
     const [response, setResponse] = useState("");
     const [activeTab, setActiveTab] = useState('1');
@@ -51,7 +51,7 @@ export default function AppDelete(): JSX.Element {
         event.preventDefault();
 
         try {
-            if (!params || sender.length === 0) return;
+            if (!params || sender.length === 0 || !appIndex) return;
 
             const txn = algosdk.makeApplicationDeleteTxnFromObject({
                 suggestedParams: {
