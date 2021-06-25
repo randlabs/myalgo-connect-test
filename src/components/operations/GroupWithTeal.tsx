@@ -170,7 +170,7 @@ export default function GroupWithTeal(): JSX.Element {
                             <Label className="tx-label">
                                 Response
                             </Label>
-                            <div className="txn-payment-response">
+                            <div className="txn-group-payment-response">
                                 <PrismCode
                                     code={response ? JSON.stringify(response, null, 1) : ""}
                                     language="js"
