@@ -7,7 +7,6 @@ import SenderDropdown from "../commons/FromDropdown";
 import PrismCode from '../commons/Code';
 import algosdk from "algosdk";
 import { ParamsContext } from "../../context/paramsContext";
-import { fromDecimal } from "../../utils/algorand";
 import { connection, algodClient } from '../../utils/connections';
 import { AccountsContext } from "../../context/accountsContext";
 import "./all.scss";
@@ -52,7 +51,7 @@ export default function AsaTransfer(): JSX.Element {
     const [sender, setSender] = useState(accounts[0].address);
     const [receiver, setReceiver] = useState("");
     const [amount, setAmount] = useState(0);
-    const [assetIndex, setAssetIndex] = useState(0);
+    const [assetIndex, setAssetIndex] = useState(12400859);
     const [response, setResponse] = useState("");
     const [activeTab, setActiveTab] = useState('1');
 
@@ -74,7 +73,7 @@ export default function AsaTransfer(): JSX.Element {
                 },
                 from: sender,
                 to: receiver, note,
-                amount: fromDecimal(amount ? amount : "0", 6),
+                amount: algosdk.algosToMicroalgos(amount) * 100,
                 assetIndex: assetIndex
             });
 
@@ -120,8 +119,8 @@ export default function AsaTransfer(): JSX.Element {
                             <Form id="payment-tx" onSubmit={onSubmitAsaTransferTx}>
                                 <SenderDropdown onSelectSender={setSender} />
                                 <Address label="To" onChangeAddress={setReceiver} />
-                                <Amount onChangeAmount={setAmount} />
-                                <AssetIndex onChangeAssetIndex={setAssetIndex} />
+                                <Amount amount={amount} decimals={8} onChangeAmount={setAmount} />
+                                <AssetIndex assetIndex={assetIndex} disabled={true} onChangeAssetIndex={setAssetIndex} />
                                 <Note onChangeNote={setNote} />
                                 <Button color="primary" block type="submit">
                                     Submit

@@ -1,20 +1,19 @@
-import { Fragment, useState } from "react";
+import React, { Fragment } from "react";
 import NumberFormat, { NumberFormatValues } from "react-number-format";
 import { FormGroup, Label } from "reactstrap";
 
 interface AssetIndexProps {
+    assetIndex: number;
+    disabled?: boolean;
     onChangeAssetIndex(id: number): void;
 }
 
 export default function AssetIndex(props: AssetIndexProps): JSX.Element {
-    const [assetId, setAssetId] = useState("");
-
     const onChangeAssetIndex = (values: NumberFormatValues): void => {
         if (typeof values.value) {
-            setAssetId(values.value);
             return props.onChangeAssetIndex(parseInt(values.value));
         }
-        setAssetId("0");
+        props.onChangeAssetIndex(0);
     }
 
     return <Fragment>
@@ -23,12 +22,13 @@ export default function AssetIndex(props: AssetIndexProps): JSX.Element {
                 Asset Index
             </Label>
             <NumberFormat
-                value={assetId}
+                value={props.assetIndex}
                 onValueChange={onChangeAssetIndex}
                 className="form-control tx-input"
                 placeholder="0"
                 allowNegative={false}
                 isNumericString={true}
+                disabled={props.disabled}
             />
         </FormGroup>
     </Fragment>

@@ -109,17 +109,6 @@ export default function GroupWithTeal(): JSX.Element {
             const signedTx1 = await connection.signTransaction(txs[0].toByte());
             const signedTx2 = algosdk.signLogicSigTransaction(txs[1], lsig);
 
-            // TODO: Remove Later
-            console.log("Signed by MyAlgo Connect")
-            console.log("signedTx1", signedTx1);
-            console.log("signedTx1Decoded", algosdk.decodeObj(signedTx1.blob));
-            console.log("signedTx1Base64", Buffer.from(signedTx1.blob).toString("base64"));
-
-            console.log("Signed by Stateless Teal")
-            console.log("signedTx2", signedTx2);
-            console.log("signedTx2Decoded", algosdk.decodeObj(signedTx2.blob));
-            console.log("signedTx2Base64", Buffer.from(signedTx2.blob).toString("base64"));
-
             const response = await algodClient.sendRawTransaction([ signedTx1.blob, signedTx2.blob ]).do();
 
             setResponse(response);

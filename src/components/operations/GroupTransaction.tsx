@@ -1,13 +1,11 @@
 import React, { useState, FormEvent, useContext } from "react";
 import { Button, Col, Container, Form, Label, Nav, NavItem, NavLink, Row, TabContent, TabPane } from "reactstrap";
-import Note from "../commons/Note";
 import Address from "../commons/Address";
 import Amount from "../commons/Amount";
 import SenderDropdown from "../commons/FromDropdown";
 import PrismCode from '../commons/Code';
 import algosdk from "algosdk";
 import { ParamsContext } from "../../context/paramsContext";
-import { fromDecimal } from "../../utils/algorand";
 import { connection, algodClient } from '../../utils/connections';
 import { AccountsContext } from "../../context/accountsContext";
 import "./all.scss";
@@ -98,7 +96,7 @@ export default function GroupTransaction(): JSX.Element {
                 },
                 from: sender,
                 to: receiver1,
-                amount: fromDecimal(amount1 ? amount1 : "0", 6),
+                amount: algosdk.algosToMicroalgos(amount1),
             });
 
             const txn2 = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
@@ -109,7 +107,7 @@ export default function GroupTransaction(): JSX.Element {
                 },
                 from: sender,
                 to: receiver2,
-                amount: fromDecimal(amount2 ? amount2 : "0", 6),
+                amount: algosdk.algosToMicroalgos(amount2),
             });
 
             const txArr = [ txn1, txn2 ];
@@ -134,7 +132,7 @@ export default function GroupTransaction(): JSX.Element {
         <Row className="mt-4">
             <Col>
                 <h1>Group transaction</h1>
-                <p>Make a group transaction (e.g. same 2 Payment transactions)</p>
+                <p>Make two atomic transactions</p>
             </Col>
         </Row>
         <div>
@@ -161,9 +159,9 @@ export default function GroupTransaction(): JSX.Element {
                             <Form id="payment-tx" onSubmit={onSubmitGroupTxns}>
                                 <SenderDropdown onSelectSender={setSender} />
                                 <Address label="To for Transaction 1" onChangeAddress={setReceiver1} />
-                                <Amount label="Amount for Transaction 1" onChangeAmount={setAmount1} />
+                                <Amount amount={amount1} label="Amount for Transaction 1" onChangeAmount={setAmount1} />
                                 <Address label="To for Transaction 2" onChangeAddress={setReceiver2} />
-                                <Amount label="Amount for Transaction 2"  onChangeAmount={setAmount2} />
+                                <Amount amount={amount2} label="Amount for Transaction 2"  onChangeAmount={setAmount2} />
                                 <Button color="primary" block type="submit">
                                     Submit
                                 </Button>

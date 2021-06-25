@@ -8,7 +8,6 @@ import SenderDropdown from "../commons/FromDropdown";
 import Note from "../commons/Note";
 import PrismCode from '../commons/Code';
 import algosdk from "algosdk";
-import { fromDecimal } from "../../utils/algorand";
 import { algodClient, connection } from "../../utils/connections";
 
 
@@ -82,7 +81,7 @@ export default function SignTeal(): JSX.Element {
                 },
                 from: sender,
                 to: receiver, note,
-                amount: fromDecimal(amount ? amount : "0", 6),
+                amount: algosdk.algosToMicroalgos(amount),
             });
 
             const rTeal = statelessTeal.replace("$REPLACE_FOR_TXID", `${txn.txID()}`);
@@ -149,7 +148,7 @@ export default function SignTeal(): JSX.Element {
                             <Form id="payment-tx" onSubmit={onPrepareTransaction}>
                                 <SenderDropdown onSelectSender={setSender} disabled={!!preparedTxn}/>
                                 <Address label="To" onChangeAddress={setReceiver} disabled={!!preparedTxn}/>
-                                <Amount onChangeAmount={setAmount} disabled={!!preparedTxn}/>
+                                <Amount amount={amount} onChangeAmount={setAmount} disabled={!!preparedTxn}/>
                                 <Note onChangeNote={setNote} disabled={!!preparedTxn}/>
                                 {
                                     preparedTxn === null || teal.length === 0 ?

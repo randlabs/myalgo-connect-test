@@ -7,7 +7,6 @@ import SenderDropdown from "../commons/FromDropdown";
 import PrismCode from '../commons/Code';
 import algosdk from "algosdk";
 import { ParamsContext } from "../../context/paramsContext";
-import { fromDecimal } from "../../utils/algorand";
 import { connection, algodClient } from '../../utils/connections';
 import { AccountsContext } from "../../context/accountsContext";
 import "./all.scss";
@@ -72,7 +71,7 @@ export default function Payment(): JSX.Element {
                 },
                 from: sender,
                 to: receiver, note,
-                amount: fromDecimal(amount ? amount : "0", 6),
+                amount: algosdk.algosToMicroalgos(amount),
             });
 
             const signedTxn = await connection.signTransaction(txn.toByte());
@@ -117,7 +116,7 @@ export default function Payment(): JSX.Element {
                             <Form id="payment-tx" onSubmit={onSubmitPaymentTx}>
                                 <SenderDropdown onSelectSender={setSender} />
                                 <Address label="To" onChangeAddress={setReceiver} />
-                                <Amount onChangeAmount={setAmount} />
+                                <Amount amount={amount} onChangeAmount={setAmount} />
                                 <Note onChangeNote={setNote} />
                                 <Button color="primary" block type="submit">
                                     Submit
