@@ -1,0 +1,7 @@
+.main-container {
+	align-items: center;
+}
+
+.main-row, .main-container {
+	min-height: calc(100vh - 140px);
+}

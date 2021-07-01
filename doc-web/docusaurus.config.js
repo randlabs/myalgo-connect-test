@@ -1,6 +1,9 @@
 const lightCodeTheme = require('prism-react-renderer/themes/github');
 const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
+const algosdkPlugin = require('./src/docusaurus-plugin/algosdk/index');
+const bufferPlugin = require('./src/docusaurus-plugin/buffer/index');
+
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 module.exports = {
   title: 'My Algo Connect Docs',
@@ -105,4 +108,9 @@ module.exports = {
       },
     ],
   ],
+  plugins: [
+    algosdkPlugin,
+    bufferPlugin,
+    'docusaurus-plugin-sass',
+  ]
 };
