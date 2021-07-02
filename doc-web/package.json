@@ -49,6 +49,7 @@
     "buffer": "^6.0.3",
     "css-loader": "^5.2.6",
     "docusaurus-plugin-sass": "^0.2.1",
+    "raw-loader": "^4.0.2",
     "sass": "^1.35.1",
     "sass-loader": "^12.1.0",
     "style-loader": "^3.0.0",
