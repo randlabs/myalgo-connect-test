@@ -2,14 +2,18 @@
 sidebar_position: 1
 ---
 
-# My Algo Connect API
+# MyAlgo Connect API
 
-My Algo Connect offers 3 methods, let’s review them.
+MyAlgo Connect offers 3 methods, summarized here.
 
 ## connect
 
-Request users to give access to the DApp and share with it a list of wallets (only the public data) for all networks.
-Connect allows the DApp to know the list of addresses allowed to be signed by the user in the future transaction(s).
+Request the user to give access to the dapp and which account(s) to share (only the public data). 
+In order to request a signature from the user or have the user approve a transaction, one must be able to access the user's wallet address. 
+Connect method allows the dapp to know the list of addresses allowed by the user for future signatures.
+
+The Connect method is agnostic for all networks.
+
 
 ### Fingerprint
 
