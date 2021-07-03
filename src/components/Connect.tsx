@@ -10,17 +10,10 @@ interface ConnectProps {
 }
 
 const code = `
-const connectToMyAlgo = async() => {
-    try {
-        const accounts = await myAlgoWallet.connect();
-        console.log(accounts);
-    }
-    catch (err) {
-        console.error(err);
-    }
-}
-`;
+import myAlgo from '@randlabs/myalgo-connect';
 
+const accounts = await myAlgo.connect();
+`;
 const Connect: FC<ConnectProps> = (props: ConnectProps): JSX.Element => {
 
     const [accounts, setAccounts] = useState<Accounts[]>([]);

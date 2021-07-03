@@ -6,7 +6,7 @@ const bufferPlugin = require('./src/docusaurus-plugin/buffer/index');
 
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 module.exports = {
-  title: 'My Algo Connect Docs',
+  title: 'Documentation',
   tagline: 'My Algo Connect',
   url: 'https://your-docusaurus-test-site.com',
   baseUrl: '/',
@@ -26,7 +26,7 @@ module.exports = {
           type: 'doc',
           docId: 'intro',
           position: 'left',
-          label: 'My Algo Connect Docs',
+          label: 'Documentation',
         },
         // {to: '/blog', label: 'Blog', position: 'left'},
         // {

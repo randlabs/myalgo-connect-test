@@ -1,37 +1,32 @@
 @font-face {
-	font-family: "Montserrat";
-	font-style: normal;
-	font-weight: 400;
-	src: local("Montserrat"),
-		url(./assets/fonts/Montserrat-Regular.ttf) format("truetype");
+  font-family: "Montserrat";
+  font-style: normal;
+  font-weight: 400;
+  src: local("Montserrat"), url(./assets/fonts/Montserrat-Regular.ttf) format("truetype");
 }
 @font-face {
-	font-family: "Montserrat";
-	font-style: normal;
-	font-weight: 500;
-	src: local("Montserrat"),
-		url(./assets/fonts/Montserrat-Medium.ttf) format("truetype");
+  font-family: "Montserrat";
+  font-style: normal;
+  font-weight: 500;
+  src: local("Montserrat"), url(./assets/fonts/Montserrat-Medium.ttf) format("truetype");
 }
 @font-face {
-	font-family: "Montserrat";
-	font-style: normal;
-	font-weight: 700;
-	src: local("Montserrat"),
-		url(./assets/fonts/Montserrat-Bold.ttf) format("truetype");
+  font-family: "Montserrat";
+  font-style: normal;
+  font-weight: 700;
+  src: local("Montserrat"), url(./assets/fonts/Montserrat-Bold.ttf) format("truetype");
 }
 @font-face {
-	font-family: "Montserrat";
-	font-style: normal;
-	font-weight: 900;
-	src: local("Montserrat"),
-		url(./assets/fonts/Montserrat-Black.ttf) format("truetype");
+  font-family: "Montserrat";
+  font-style: normal;
+  font-weight: 900;
+  src: local("Montserrat"), url(./assets/fonts/Montserrat-Black.ttf) format("truetype");
 }
 @font-face {
-	font-family: "Montserrat";
-	font-style: normal;
-	font-weight: 300;
-	src: local("Montserrat"),
-		url(./assets/fonts/Montserrat-Light.ttf) format("truetype");
+  font-family: "Montserrat";
+  font-style: normal;
+  font-weight: 300;
+  src: local("Montserrat"), url(./assets/fonts/Montserrat-Light.ttf) format("truetype");
 }
 
 ::-webkit-scrollbar {
@@ -40,7 +35,7 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent; 
+  background: transparent;
   border-radius: 10px !important;
 }
 
@@ -51,22 +46,6 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #ced4da;
-}
-
-body {
-  margin: 0;
-  margin: 0;
-	padding: 0;
-  font-size: 0.825rem !important;
-	min-height: 100%;
-	font-family: "Montserrat", "Roboto", sans-serif !important;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-}
-
-h1 {
-  font-size: 1.5rem !important;
-  font-weight: 500 !important;
 }
 
 .text-ellipsis {
@@ -82,19 +61,24 @@ h1 {
   background-color: #245ec7 !important;
   color: #fff !important;
   border: 1px solid #245ec7 !important;
-  &:hover, &:focus, &:active, &:visited {
-    background-color: #1E65E6 !important;
-    border: 1px solid #1E65E6 !important;
+  &:hover,
+  &:focus,
+  &:active,
+  &:visited {
+    background-color: #1e65e6 !important;
+    border: 1px solid #1e65e6 !important;
   }
-  &:focus, &:active, &:visited {
+  &:focus,
+  &:active,
+  &:visited {
     outline: none !important;
     box-shadow: none !important;
   }
-  &:disabled{
+  &:disabled {
     background-color: #e2e7eb !important;
     color: #2c2e2f !important;
     border: 1px solid #e2e7eb !important;
-    &:hover{
+    &:hover {
       background-color: #e2e7eb !important;
       color: #2c2e2f !important;
       border: 1px solid #e2e7eb !important;
@@ -127,22 +111,22 @@ h1 {
 
 #my-algo-app {
   .toptoolbar-logo {
-      height: 85px !important;
+    height: 85px !important;
   }
   display: inline-block;
   .toptoolbar-dropdown-logo {
-      height: 18px !important;
+    height: 18px !important;
   }
   .toptoolbar-dropdown-text {
-      position: relative;
-      text-decoration: none;
-      color: #245ec7;
-      font-weight: 400;
-      font-size: 1.5rem !important;
-      &.in-toolbar{
-          margin-left: 15px;
-          font-weight: 500;
-      }
+    position: relative;
+    text-decoration: none;
+    color: #245ec7;
+    font-weight: 400;
+    font-size: 1.5rem !important;
+    &.in-toolbar {
+      margin-left: 15px;
+      font-weight: 500;
+    }
   }
 }
 
@@ -168,8 +152,8 @@ h1 {
   &:focus {
     border-color: #3dccdd !important;
     outline: 0 !important;
-    -webkit-box-shadow: 0 0 0 0.2rem rgba(61, 204, 221,.25)!important;
-    box-shadow: 0 0 0 0.2rem rgba(61, 204, 221,.25)!important;
+    -webkit-box-shadow: 0 0 0 0.2rem rgba(61, 204, 221, 0.25) !important;
+    box-shadow: 0 0 0 0.2rem rgba(61, 204, 221, 0.25) !important;
   }
   &::after {
     position: absolute;
@@ -177,7 +161,7 @@ h1 {
     right: 5px;
     margin-left: 0;
     vertical-align: baseline;
-}
+  }
 }
 
 .dropdown-menu {
@@ -190,8 +174,8 @@ h1 {
   &:focus {
     border-color: #3dccdd !important;
     outline: 0 !important;
-    -webkit-box-shadow: 0 0 0 0.2rem rgba(61, 204, 221,.25)!important;
-    box-shadow: 0 0 0 0.2rem rgba(61, 204, 221,.25)!important;
+    -webkit-box-shadow: 0 0 0 0.2rem rgba(61, 204, 221, 0.25) !important;
+    box-shadow: 0 0 0 0.2rem rgba(61, 204, 221, 0.25) !important;
   }
   &.note {
     resize: none;
@@ -221,7 +205,13 @@ h1 {
 .footer-link {
   color: #a7a7a7;
   cursor: pointer;
-  &:hover, &:focus, &:active {
-      color: #a7a7a7;
+  &:hover,
+  &:focus,
+  &:active {
+    color: #a7a7a7;
   }
+}
+
+a {
+  text-decoration: none !important;
 }
