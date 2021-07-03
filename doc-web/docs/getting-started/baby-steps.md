@@ -29,7 +29,7 @@ const accountsSharedByUser = await myAlgoConnect.connect()
 
 ### Create and sign transactions
 
-The next step, signing a transaction or a set of transactions with MyAlgo Connect, is accomplished by first creating the transaction itself:
+The next step, signing a transaction or a set of transactions with **MyAlgo Connect**, is accomplished by first creating the transaction itself.
 
 There are two options to create transactions accepted by MyAlgo Connect:
 

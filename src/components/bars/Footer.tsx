@@ -21,7 +21,7 @@ class Footer extends Component {
 					<Col className="footer-col">
 						&copy;&nbsp;
 						{new Date().getFullYear()}
-						&nbsp;My Algo.&nbsp; All Rights Reserved
+						&nbsp;MyAlgo.&nbsp; All Rights Reserved
 					</Col>
 				</Row>
 			</Container>

@@ -6,7 +6,7 @@ sidebar_position: 1
 
 MyAlgo Connect offers 3 methods, summarized here.
 
-## connect
+## connect()
 
 Request the user to give access to the dapp and which account(s) to share (only the public data). 
 In order to request a signature from the user or have the user approve a transaction, one must be able to access the user's wallet address. 
@@ -15,7 +15,7 @@ Connect method allows the dapp to know the list of addresses allowed by the user
 The Connect method is agnostic for all networks.
 
 
-### Fingerprint
+#### Fingerprint
 
 ```jsx
 export interface Accounts {
@@ -30,15 +30,14 @@ export interface ConnectionSettings {
 connect(settings?: ConnectionSettings): Promise<Accounts[]>;
 ```
 
-### Params
+#### Params
 
-Object `settings` has the following field:
-
+Object `settings` with the following field(s):
 `shouldSelectOneAccount`: Users are allowed to select just one account. Default is false.
 
-### Response
+#### Response
 
-Will return an array of Account object, which contains the public wallet(s) data selected by the user in the “Manage your account” section. 
+Will return an array of an Account object, which contains the public wallet(s) data selected by the user in the “Manage your account” section.
 
 ```json
 [
@@ -49,17 +48,14 @@ Will return an array of Account object, which contains the public wallet(s) data
 ]
 ```
 
-If the user closes the popup, Promise will be rejected with an error message. These  cases need to be handled by the application being developed.
+If the user closes the popup, Promise will be rejected with an error message. These cases need to be handled by the application being developed.
 
+## signTransaction()
 
-## signTransaction
+Allows you to send Algorand transaction(s) to MyAlgo Connect to be signed by the user.
+Transactions will be validated against our own set of validations and then for the AlgoSDK, just in case some transaction fails, the whole set of transactions will be rejected.
 
-Sends to My Algo Connect an Algorand transaction(s) to be signed by the user.
-Sent in transactions will be validated against our own set of validations and then for the Algo SDK, just in case some transaction fails, the whole set of transactions will be rejected.
-
-Every transaction will be signed by the corresponding wallet  (My Algo Connect will use corresponding wallet’s address in case the transaction is rekeyed)
-
-### Fingerprint
+#### Fingerprint
 
 ```jsx 
 export type Address = string;
@@ -76,14 +72,14 @@ export interface SignedTx {
 signTransaction(transaction: AlgorandTxn | EncodedTransaction | AlgorandTxn[] | EncodedTransaction[]): Promise<SignedTx | SignerdTx[]>;
 ```
 
-### Params
+#### Params
 
-`transaction`: an array or a single transaction of these types: AlgorandTxn or EncodedTransaction.
+`transaction`: an array or a single transaction of the following types: **AlgorandTxn**, **EncodedTransaction**.
 
 
-### Response
+#### Response
 
-Calling signTransaction with an array of transactions will return an array of SignedTx object. 
+Calling signTransaction with an array of transactions will return an array of a SignedTx object. 
 
 ```json
 [
@@ -125,17 +121,17 @@ Otherwise, it will return a SignedTx object.
 }
 ```
 
-### Considerations
+#### Considerations
 
-* Networks accepted are: Algorand’s **MAINNET**, **TESTNET** and **BETANET**. Also, **private** networks are allowed by just specifying the network in the transaction params.
-* Set of transactions that are sent to sign must have the same Network. Otherwise My Algo Connect will fail.
-* Different addresses are allowed to be specified as a sender (“from”) in transaction(s), however, the address(es) should be a subset of the accounts shared by the user in the `connect` method.
+* Transactions that are sent to sign must have the same network. Otherwise, they will be rejected.
+* Different addresses are allowed to be specified as a sender (“from”) in transaction(s), however, the address(es) should be a subset of the accounts shared by the user previously selected in the connect method.
+* Rekey transactions will be signed by the corresponding wallet in case it belongs to the set of wallet shared by the user, this process is automatic and you don’t need to do anything in particular.
 
-## signLogicSig
+## signLogicSig()
 
-Send to My Algo Connect an Algorand program to be signed by the user.
+Sends to MyAlgo Connect an Algorand program to be signed by the user.
 
-### Fingerprint
+#### Fingerprint
 
 ```jsx
 export type Address = string;
@@ -144,12 +140,12 @@ export type Base64 = string;
 signLogicSig(logic: Uint8Array | Base64, address: Address): Promise<Uint8Array>;
 ```
 
-### Params
+#### Params
 `Logic`:  TEAL program to be signed by the user.
 
 `Address`: Signer’s Address.
 
-### Response
+#### Response
 
 
 ```json

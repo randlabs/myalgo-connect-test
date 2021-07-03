@@ -7,7 +7,7 @@ const bufferPlugin = require('./src/docusaurus-plugin/buffer/index');
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 module.exports = {
   title: 'Documentation',
-  tagline: 'My Algo Connect',
+  tagline: 'MyAlgo Connect',
   url: 'https://your-docusaurus-test-site.com',
   baseUrl: '/',
   onBrokenLinks: 'throw',
@@ -79,7 +79,7 @@ module.exports = {
       //     ],
       //   },
       // ],
-      copyright: `Copyright © ${new Date().getFullYear()} My Algo Connect 2.0, Powered by © Rand Labs.`,
+      copyright: `Copyright © ${new Date().getFullYear()} MyAlgo Connect 2.0, Powered by © Rand Labs.`,
     },
     prism: {
       theme: lightCodeTheme,
