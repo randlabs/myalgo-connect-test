@@ -53,7 +53,7 @@ export default function AppOptInExample(): JSX.Element {
     const [accounts, setAccounts] = useState(accountsList);
     const [appIndex, setAppIndex] = useState("14241387");
     const [note, setNote] = useState<Uint8Array | undefined>();
-    const [response, setResponse] = useState({});
+    const [response, setResponse] = useState();
     const [activeTab, setActiveTab] = useState('1');
 
     const toggle = (tab: React.SetStateAction<string>) => {
@@ -115,7 +115,7 @@ export default function AppOptInExample(): JSX.Element {
                                 <SenderDropdown onSelectSender={setAccounts} accounts={accounts} />
                                 <AppIndex onChangeAppIndex={setAppIndex} />
                                 <Note onChangeNote={setNote} />
-                                <Button color="primary" block type="submit" className="mt-2">
+                                <Button color="primary" block type="submit" className="mt-2" disabled={accounts.length === 0}>
                                     Submit
                                 </Button>
                             </Form>
@@ -141,6 +141,9 @@ export default function AppOptInExample(): JSX.Element {
                             </Button>
                         </Col>
                     </Row>
+                    {accounts.length === 0 && 
+                        <div className="error-connect mt-3"> In order to run this example, you need to execute connect() method. </div>
+                    }
                 </TabPane>
                 <TabPane tabId="2">
                     <div className="mt-4"> The following codes allow you to create and sent to MyAlgo Connect an opt-in transaction to be sign by the user. There are two alternatives to create it. Pick the one you prefere.</div>

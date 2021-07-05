@@ -56,7 +56,7 @@ export default function PaymentTransactionExample(): JSX.Element {
     const [accounts, setAccounts] = useState(accountsList);
     const [receiver, setReceiver] = useState("");
     const [amount, setAmount] = useState(0);
-    const [response, setResponse] = useState({});
+    const [response, setResponse] = useState();
     const [activeTab, setActiveTab] = useState('1');
 
     const toggle = (tab: React.SetStateAction<string>) => {
@@ -114,7 +114,7 @@ export default function PaymentTransactionExample(): JSX.Element {
                                 <Address label="To" onChangeAddress={setReceiver} />
                                 <Amount amount={amount} onChangeAmount={setAmount} />
                                 <Note onChangeNote={setNote} />
-                                <Button color="primary" className="mt-2" type="submit">
+                                <Button color="primary" className="mt-2" type="submit" disabled={accounts.length === 0}>
                                     Submit
                                 </Button>
                             </Form>
@@ -140,6 +140,9 @@ export default function PaymentTransactionExample(): JSX.Element {
                             </Button>
                         </Col>
                     </Row>
+                    {accounts.length === 0 && 
+                        <div className="error-connect mt-3"> In order to run this example, you need to execute connect() method. </div>
+                    }
                 </TabPane>
                 <TabPane tabId="2">
                     <div className="mt-4"> The following codes allow you to create and sent to MyAlgo Connect a payment transaction to be sign by the user. There are two alternatives to create it. Pick the one you prefere.</div>

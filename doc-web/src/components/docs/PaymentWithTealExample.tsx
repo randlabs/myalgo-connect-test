@@ -149,7 +149,7 @@ export default function SignTealExample(): JSX.Element {
                                 <Note onChangeNote={setNote} disabled={!!preparedTxn} />
                                 {
                                     preparedTxn === null || teal.length === 0 ?
-                                        <Button color="primary" block type="submit" className="mt-2">
+                                        <Button color="primary" block type="submit" className="mt-2" disabled={accounts.length === 0}>
                                             Prepare Teal
                                         </Button>
                                         : <Button color="primary" block className="mt-2" onClick={() => onSubmitSignTeal}>
@@ -179,6 +179,9 @@ export default function SignTealExample(): JSX.Element {
                         </Button>
                         </Col>
                     </Row>
+                    {accounts.length === 0 && 
+                        <div className="error-connect mt-3"> In order to run this example, you need to execute connect() method. </div>
+                    }
                 </TabPane>
                 <TabPane tabId="2">
                     <Row className="mt-3">

@@ -52,7 +52,7 @@ export default function ApplCreateTransactionExample(): JSX.Element {
     const applProgram = "AiAEAAUEASYDB0NyZWF0b3IMTGFzdE1vZGlmaWVyBUNvdW50IjEYEkEADigxAGcpMQBnKiJnQgApMRkjEkAACjEZJBJAAA5CABgoZDEAEkEAEkIADSkxAGcqKmQlCGdCAAAlQyJDIgBD";
     const appIndex = 17155035;
     const [accounts, setAccounts] = useState(accountsList);
-    const [response, setResponse] = useState({});
+    const [response, setResponse] = useState();
     const [activeTab, setActiveTab] = useState('1');
 
     const toggle = (tab: React.SetStateAction<string>) => {
@@ -114,7 +114,7 @@ export default function ApplCreateTransactionExample(): JSX.Element {
                             <Form id="payment-tx" onSubmit={onSubmitUpdateAppl}>
                                 <SenderDropdown onSelectSender={setAccounts} accounts={accounts} />
                                 <AppIndex disabled={true} value={appIndex.toString()} onChangeAppIndex={() => { }} />
-                                <Button color="primary" block type="submit" className="mt-2">
+                                <Button color="primary" block type="submit" className="mt-2" disabled={accounts.length === 0}>
                                     Submit
                                 </Button>
                             </Form>
@@ -140,6 +140,9 @@ export default function ApplCreateTransactionExample(): JSX.Element {
                             </Button>
                         </Col>
                     </Row>
+                    {accounts.length === 0 && 
+                        <div className="error-connect mt-3"> In order to run this example, you need to execute connect() method. </div>
+                    }
                 </TabPane>
                 <TabPane tabId="2">
                     <div className="mt-4"> The following codes allow you to create and sent to MyAlgo Connect an application update transaction to be sign by the user. There are two alternatives to create it. Pick the one you prefere.</div>

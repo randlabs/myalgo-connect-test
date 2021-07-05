@@ -79,7 +79,7 @@ export default function GroupedPaymentExample(): JSX.Element {
     const [receiver2, setReceiver2] = useState("");
     const [amount1, setAmount1] = useState(0);
     const [amount2, setAmount2] = useState(0);
-    const [response, setResponse] = useState({});
+    const [response, setResponse] = useState();
     const [activeTab, setActiveTab] = useState('1');
 
     const toggle = (tab: React.SetStateAction<string>) => {
@@ -160,7 +160,7 @@ export default function GroupedPaymentExample(): JSX.Element {
                                 <Amount amount={amount1} label="Amount for Transaction 1" onChangeAmount={setAmount1} />
                                 <Address label="To for Transaction 2" onChangeAddress={setReceiver2} />
                                 <Amount amount={amount2} label="Amount for Transaction 2" onChangeAmount={setAmount2} />
-                                <Button color="primary" block type="submit" className="mt-2">
+                                <Button color="primary" block type="submit" className="mt-2" disabled={accounts.length === 0}>
                                     Submit
                                 </Button>
                             </Form>
@@ -186,6 +186,9 @@ export default function GroupedPaymentExample(): JSX.Element {
                             </Button>
                         </Col>
                     </Row>
+                    {accounts.length === 0 && 
+                        <div className="error-connect mt-3"> In order to run this example, you need to execute connect() method. </div>
+                    }
                 </TabPane>
                 <TabPane tabId="2">
                     <div className="mt-4"> The following codes allow you to create and sent to MyAlgo Connect 2 transactions grouped to be sign by the user. There are two alternatives to make it. Pick the one you prefere.</div>
