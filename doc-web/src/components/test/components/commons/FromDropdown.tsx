@@ -1,16 +1,16 @@
 import { Accounts } from "@randlabs/myalgo-connect";
-import React, { useState, useContext, Fragment, ReactElement, MouseEvent, useEffect } from "react";
+import React, { Fragment, MouseEvent, ReactElement, useState } from "react";
 import { Dropdown, DropdownItem, DropdownMenu, DropdownToggle, FormGroup, Label } from "reactstrap";
-import { AccountsContext } from "../../context/accountsContext";
 
 interface SenderDropdownProps {
     disabled?: boolean;
     onSelectSender(sender: string): void;
+    accounts: any[]
 }
 
 export default function SenderDropdown(props: SenderDropdownProps): JSX.Element {
-    const accounts = useContext(AccountsContext);
-    const [ sender, setSender ] = useState(accounts[0]);
+    const account = props.accounts &&  props.accounts.length > 0 ? props.accounts[0] : { name: "No wallet loaded" }
+    const [ sender, setSender ] = useState(account);
     const [ isOpen, openDropdown ] = useState(false);
 
     const onToggleSender = (event: MouseEvent) => {
@@ -29,18 +29,17 @@ export default function SenderDropdown(props: SenderDropdownProps): JSX.Element 
                 From
             </Label>
             <Dropdown
-                disabled={props.disabled}
+                disabled={props.disabled || !props.accounts || props.accounts.length === 0}
                 className="from-dropdown"
                 isOpen={isOpen}
-                toggle={onToggleSender}
-            >
+                toggle={onToggleSender}>
                 <DropdownToggle caret disabled={props.disabled}>
                     <span className="text-ellipsis">
                         {sender.name}
                     </span>
                 </DropdownToggle>
                 <DropdownMenu>
-                    {accounts.map((account): ReactElement => {
+                    {props.accounts && props.accounts.map((account): ReactElement => {
                         return (
                             <DropdownItem
                                 onClick={() => onSelectSender(account)}

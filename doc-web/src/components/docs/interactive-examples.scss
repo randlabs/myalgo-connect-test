@@ -4,13 +4,13 @@
     align-items: center;
 }
 
-.txn-payment-response {
-    max-height: 356px !important;
+.txn-payment-example-response {
+    max-height: 311px !important;
     height: 100%;
 }
 
 .txn-asa-transfer-response {
-    max-height: 427px !important;
+    max-height: 372px !important;
     height: 100%;
 }
 
@@ -24,13 +24,13 @@
     height: 100%;
 }
 
-.txn-appl-update-response{
+.txn-appl-update-response {
     max-height: 112px !important;
     height: 100%;
 }
 
 .txn-group-response {
-    max-height: 332px !important;
+    max-height: 275px !important;
     height: 100%;
 }
 
@@ -54,9 +54,9 @@
     margin: 0px !important;
 }
 
-.code-connect {
+.code-connect-example {
     height: 100%;
-    max-height: 197px !important;
+    max-height: 162px !important;
 }
 
 .nav-link {
@@ -78,7 +78,8 @@
 }
 
 @media (max-width: 992px) {
-    .tab-pane .row, .connect-content {
+    .tab-pane .row,
+    .connect-content {
         display: inherit !important;
     }
 
@@ -87,6 +88,6 @@
     }
 }
 
-button {
-    width: 100%;
+.from-dropdown {
+    display: block;
 }

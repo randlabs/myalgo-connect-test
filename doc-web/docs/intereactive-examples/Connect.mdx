@@ -1,14 +1,20 @@
 ---
-sidebar_position: 2
+sidebar_position: 1
 ---
+
+import Connect from "../../src/components/docs/ConnectExample"
 
 # Connect
 
-Check out the MyAlgo Connect interactive examples.
+Connect your dapp to Algorand users's wallets.
+User should grant access and choose the wallets that wish to share with your dapp.
 
-import Connect from "../../src/components/docs/connect"
-import ConnectCode from "!!raw-loader!../../src/components/docs/connect"
-import CodeBlock from '@theme/CodeBlock';
+### Preconditions
 
-<CodeBlock className="language-tsx">{ConnectCode}</CodeBlock>
+* User must have MyAlgo Wallet Account previously set in **[MyAlgo Wallet](https://wallet.myalgo.com/home)** to be able to connect to the dapp. Otherwise user will be alerted in MyAlgo Connect popup.
+
+* User should have a wallet previously added in **[MyAlgo Wallet](https://wallet.myalgo.com/home)** in order to be able to share it. Otherwise user will be aleted in MyAlgo Connect popup.
+
+
+## Interactive Example
 <Connect />

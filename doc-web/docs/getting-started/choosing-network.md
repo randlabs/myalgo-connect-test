@@ -15,10 +15,10 @@ Follow this example to create a transaction choosing the Testnet network and sen
 import algosdk from "algosdk";
 import MyAlgoConnect from '@randlabs/myalgo-connect';
  
-const algodClient = new algosdk.Algodv2("",'https://api.testnet.algoexplorer.io',
-, '');
+const algodClient = new algosdk.Algodv2("",'https://api.testnet.algoexplorer.io', '');
  
 const params = await algodClient.getTransactionParams().do();
+
 const txToSigned = algosdk.makePaymentTxnWithSuggestedParams(from, to, amount, undefined, undefined, params);
 
 const myAlgoConnect = new MyAlgoConnect();
