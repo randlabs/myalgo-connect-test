@@ -50,7 +50,7 @@ const myAlgoConnect = new MyAlgoConnect();
 const signedTxn = await myAlgoConnect.signTransaction(txn.toByte());
 `;
 
-export default function Payment(): JSX.Element {
+export default function PaymentTransactionExample(): JSX.Element {
     const accountsList = window.sharedAccounts && Array.isArray(window.sharedAccounts) ? window.sharedAccounts : [];
     const [note, setNote] = useState<Uint8Array | undefined>();
     const [accounts, setAccounts] = useState(accountsList);

@@ -1,15 +1,14 @@
+import algosdk from "algosdk";
 import React, { FormEvent, MouseEvent, useContext, useState } from "react";
 import { Button, Col, Container, Form, Label, Nav, NavItem, NavLink, Row, TabContent, TabPane } from "reactstrap";
-import { ParamsContext } from "../../context/paramsContext";
 import { AccountsContext } from "../../context/accountsContext";
+import { ParamsContext } from "../../context/paramsContext";
+import { algodClient, connection } from "../../utils/connections";
 import Address from "../commons/Address";
 import Amount from "../commons/Amount";
+import PrismCode from '../commons/Code';
 import SenderDropdown from "../commons/FromDropdown";
 import Note from "../commons/Note";
-import PrismCode from '../commons/Code';
-import algosdk from "algosdk";
-import { algodClient, connection } from "../../utils/connections";
-
 
 const codeV2 =
 `

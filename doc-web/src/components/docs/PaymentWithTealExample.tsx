@@ -54,7 +54,7 @@ byte b32 $REPLACE_FOR_TXID
 &&
 `
 
-export default function SignTeal(): JSX.Element {
+export default function SignTealExample(): JSX.Element {
     const accountsList = window.sharedAccounts && Array.isArray(window.sharedAccounts) ? window.sharedAccounts : [];
     const [accounts, setAccounts] = useState(accountsList);
     const [note, setNote] = useState<Uint8Array | undefined>();

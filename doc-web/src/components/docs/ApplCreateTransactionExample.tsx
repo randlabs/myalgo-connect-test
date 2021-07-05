@@ -1,19 +1,21 @@
 import algosdk from "algosdk";
-import React, { FormEvent, useContext, useState } from "react";
-import { Button, Col, Container, Form, Label, Nav, NavItem, NavLink, Row, TabContent, TabPane } from "reactstrap";
-import { AccountsContext } from "../../context/accountsContext";
-import { ParamsContext } from "../../context/paramsContext";
-import { algodClient, connection } from '../../utils/connections';
-import Integer from "../commons/Integer";
-import PrismCode from '../commons/Code';
-import SenderDropdown from "../commons/FromDropdown";
-import "./all.scss";
+import React, { FormEvent, useState } from "react";
+import { Button, Col, Form, Label, Nav, NavItem, NavLink, Row, TabContent, TabPane } from "reactstrap";
+import PrismCode from '../test/components/commons/Code';
+import SenderDropdown from "../test/components/commons/FromDropdown";
+import Integer from "../test/components/commons/Integer";
+import { algodClient, connection } from '../test/utils/connections';
+import "./interactive-examples.scss";
 
 const codeV1 = `
+import algosdk from "algosdk";
+import MyAlgoConnect from '@randlabs/myalgo-connect';
+ 
+const algodClient = new algosdk.Algodv2("",'https://api.testnet.algoexplorer.io', '');
+const params = await algodClient.getTransactionParams().do();
+
 const txn = {
     ...params,
-    fee: 1000,
-    flatFee: true,
     type: "appl",
     from: sender,
     appLocalByteSlices: 4,
@@ -25,15 +27,20 @@ const txn = {
     appOnComplete: 0,
 }
 
-const signedTxn = await connection.signTransaction(txn);
+const myAlgoConnect = new MyAlgoConnect();
+const signedTxn = await myAlgoConnect.signTransaction(txn);
 `;
 
 const codeV2 = `
+import algosdk from "algosdk";
+import MyAlgoConnect from '@randlabs/myalgo-connect';
+ 
+const algodClient = new algosdk.Algodv2("",'https://api.testnet.algoexplorer.io', '');
+const params = await algodClient.getTransactionParams().do();
+
 const txn = algosdk.makeApplicationCreateTxnFromObject({
     suggestedParams: {
         ...params,
-        fee: 1000,
-        flatFee: true,
     },
     from: sender,
     numLocalByteSlices: 4,
@@ -45,17 +52,17 @@ const txn = algosdk.makeApplicationCreateTxnFromObject({
     onComplete: 0,
 });
 
-const signedTxn = await connection.signTransaction(txn.toByte());
+const myAlgoConnect = new MyAlgoConnect();
+const signedTxn = await myAlgoConnect.signTransaction(txn.toByte());
 `;
 
-export default function AppCreate(): JSX.Element {
-    const params = useContext(ParamsContext);
-    const accounts = useContext(AccountsContext);
+export default function ApplCreateTransactionExample(): JSX.Element {
+    const accountsList = window.sharedAccounts && Array.isArray(window.sharedAccounts) ? window.sharedAccounts : [];
     const [localInt, setLocalInt] = useState(0);
     const [globalInt, setGlobalInt] = useState(0);
     const [localBytes, setLocalBytes] = useState(0);
     const [globalBytes, setGlobalBytes] = useState(0);
-    const [sender, setSender] = useState(accounts[0].address);
+    const [accounts, setAccounts] = useState(accountsList);
     const [response, setResponse] = useState("");
     const [activeTab, setActiveTab] = useState('1');
 
@@ -67,7 +74,8 @@ export default function AppCreate(): JSX.Element {
         event.preventDefault();
 
         try {
-            if (!params || sender.length === 0) return;
+            const params = await algodClient.getTransactionParams().do();
+            if (!params || accounts.length === 0) return;
 
             const txn = algosdk.makeApplicationCreateTxnFromObject({
                 suggestedParams: {
@@ -75,7 +83,7 @@ export default function AppCreate(): JSX.Element {
                     fee: 1000,
                     flatFee: true,
                 },
-                from: sender,
+                from: accounts[0].address,
                 numLocalByteSlices: localBytes || 0,
                 numGlobalByteSlices: globalBytes || 0,
                 numLocalInts: localInt || 0,
@@ -96,14 +104,8 @@ export default function AppCreate(): JSX.Element {
         }
     }
 
-    return <Container className="mt-5 pb-5">
-        <Row className="mt-4">
-            <Col>
-                <h1>Application Create transaction</h1>
-                <p>Make an appl create transaction</p>
-            </Col>
-        </Row>
-        <div>
+    return (
+        <div className="interactive-example">
             <Nav tabs>
                 <NavItem>
                     <NavLink
@@ -125,19 +127,19 @@ export default function AppCreate(): JSX.Element {
                     <Row className="mt-3">
                         <Col xs="12" lg="6" className="mt-2">
                             <Form id="payment-tx" onSubmit={onSubmitCreateAppl}>
-                                <SenderDropdown onSelectSender={setSender} />
+                                <SenderDropdown onSelectSender={setAccounts} accounts={accounts} />
                                 <Integer label="Local Bytes" onChangeNumber={setLocalBytes} />
                                 <Integer label="Global Bytes" onChangeNumber={setGlobalBytes} />
                                 <Integer label="Local Int" onChangeNumber={setLocalInt} />
                                 <Integer label="Global Int" onChangeNumber={setGlobalInt} />
-                                <Button color="primary" block type="submit">
+                                <Button color="primary" block type="submit" className="mt-2">
                                     Submit
                                 </Button>
                             </Form>
                         </Col>
                         <Col xs="12" lg="6" className="mt-2 mt-xs-2">
                             <Label className="tx-label">
-                                Response
+                                signTransaction() Response
                             </Label>
                             <div className="txn-appl-create-response">
                                 <PrismCode
@@ -152,14 +154,15 @@ export default function AppCreate(): JSX.Element {
                                 block
                                 disabled={!response}
                                 onClick={() => setResponse("")}>
-                                Clear Response
+                                Clear Method Response
                             </Button>
                         </Col>
                     </Row>
                 </TabPane>
                 <TabPane tabId="2">
+                    <div className="mt-4"> The following codes allow you to create and sent to MyAlgo Connect an application transaction to be sign by the user. There are two alternatives to create it. Pick the one you prefere.</div>
                     <Row className="mt-3">
-                        <Col xs="12" lg="6">
+                        <Col>
                             <Label className="tx-label">
                                 Using Algosdk (Recommended)
                             </Label>
@@ -168,7 +171,7 @@ export default function AppCreate(): JSX.Element {
                                 language="js"
                             />
                         </Col>
-                        <Col xs="12" lg="6" className="mt-xs-4">
+                        <Col className="mt-4">
                             <Label className="tx-label">
                                 Another alternative
                             </Label>
@@ -181,5 +184,5 @@ export default function AppCreate(): JSX.Element {
                 </TabPane>
             </TabContent>
         </div>
-    </Container>
+    )
 }

@@ -1,6 +1,6 @@
 import algosdk from "algosdk";
-import React, { FormEvent, useContext, useState } from "react";
-import { Button, Col, Container, Label, Row } from "reactstrap";
+import React, { useContext, useState } from "react";
+import { Button, Col, Container, Row } from "reactstrap";
 import { AccountsContext } from "../../context/accountsContext";
 import { ParamsContext } from "../../context/paramsContext";
 import { algodClient, connection } from '../../utils/connections';

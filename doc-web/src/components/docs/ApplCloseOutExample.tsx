@@ -48,7 +48,7 @@ const myAlgoConnect = new MyAlgoConnect();
 const signedTxn = await myAlgoConnect.signTransaction(txn.toByte());
 `;
 
-export default function AppOptIn(): JSX.Element {
+export default function AppCloseOutExample(): JSX.Element {
     const accountsList = window.sharedAccounts && Array.isArray(window.sharedAccounts) ? window.sharedAccounts : [];
     const [accounts, setAccounts] = useState(accountsList);
     const [appIndex, setAppIndex] = useState("14241387");

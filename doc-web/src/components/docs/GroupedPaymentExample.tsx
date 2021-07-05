@@ -72,7 +72,7 @@ const myAlgoConnect = new MyAlgoConnect();
 const signedTxns = await myAlgoConnect.signTransaction(txnsArray.map(txn => txn.toByte()));
 `;
 
-export default function GroupTransaction(): JSX.Element {
+export default function GroupedPaymentExample(): JSX.Element {
     const accountsList = window.sharedAccounts && Array.isArray(window.sharedAccounts) ? window.sharedAccounts : [];
     const [accounts, setAccounts] = useState(accountsList);
     const [receiver1, setReceiver1] = useState("");

@@ -53,7 +53,7 @@ const myAlgoConnect = new MyAlgoConnect();
 const signedTxn = await myAlgoConnect.signTransaction(txn);
 `;
 
-export default function AsaTransfer(): JSX.Element {
+export default function ASATransactionExample(): JSX.Element {
     const accountsList = window.sharedAccounts && Array.isArray(window.sharedAccounts) ? window.sharedAccounts : [];
     const [accounts, setAccounts] = useState(accountsList);
     const [note, setNote] = useState<Uint8Array | undefined>();
