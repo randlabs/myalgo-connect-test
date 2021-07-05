@@ -22,6 +22,6 @@ const params = await algodClient.getTransactionParams().do();
 const txToSigned = algosdk.makePaymentTxnWithSuggestedParams(from, to, amount, undefined, undefined, params);
 
 const myAlgoConnect = new MyAlgoConnect();
-// Send testnet txn to be signed by the user through MyAlgo Connect.
-const txnSignedByTheUser = await myAlgoConnect.signTransaction(txn.toByte());
+ 
+const txnSignedByTheUser = await myAlgoConnect.signTransaction(txToSigned.toByte());
 ```

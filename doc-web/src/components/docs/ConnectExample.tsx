@@ -34,7 +34,7 @@ export default function ConnectExample(): JSX.Element {
     }
 
     return (
-        <Row className="connect-example-content">
+        <Row className="connect-example-content interactive-example">
             <Col xs="12" lg="6">
                 <Label className="tx-label">
                     Code
@@ -52,8 +52,8 @@ export default function ConnectExample(): JSX.Element {
             </Col>
             <Col xs="12" lg="6">
                 <Label className="tx-label">
-                    Response
-                    </Label>
+                    connect() Response
+                </Label>
                 <div className="response-base code-connect-example">
                     <PrismCode
                         code={accounts.length ? JSON.stringify(accounts, null, 1) : ""}
@@ -67,7 +67,7 @@ export default function ConnectExample(): JSX.Element {
                     block
                     disabled={!accounts.length}
                     onClick={onClearResponse}>
-                    Clear Response
+                    Clear Method Response
                 </Button>
             </Col>
         </Row>

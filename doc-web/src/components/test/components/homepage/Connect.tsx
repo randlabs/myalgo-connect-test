@@ -10,7 +10,6 @@ interface ConnectProps {
 }
 
 const install = `
-
 npm install @randlabs/myalgo-connect
 `;
 

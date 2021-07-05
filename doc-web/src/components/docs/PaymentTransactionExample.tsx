@@ -88,7 +88,7 @@ export default function Payment(): JSX.Element {
     }
 
     return (
-        <div>
+        <div className="interactive-example">
             <Nav tabs>
                 <NavItem>
                     <NavLink
@@ -121,7 +121,7 @@ export default function Payment(): JSX.Element {
                         </Col>
                         <Col xs="12" lg="6" className="mt-2 mt-xs-2">
                             <Label className="tx-label">
-                                Response
+                                signTransaction() Response
                             </Label>
                             <div className="txn-payment-example-response">
                                 <PrismCode
@@ -136,13 +136,13 @@ export default function Payment(): JSX.Element {
                                 block
                                 disabled={!response}
                                 onClick={() => setResponse("")}>
-                                Clear Response
+                                Clear Method Response
                             </Button>
                         </Col>
                     </Row>
                 </TabPane>
                 <TabPane tabId="2">
-                    <div className="mt-4"> The following codes allow you to create and sent to MyAlgo Connect a payment transaction to be sign by the user. There are two alternatives to create it. Pick the one you prefere</div>
+                    <div className="mt-4"> The following codes allow you to create and sent to MyAlgo Connect a payment transaction to be sign by the user. There are two alternatives to create it. Pick the one you prefere.</div>
                     <Row className="mt-3">
                         <Col>
                             <Label className="tx-label">

@@ -9,6 +9,11 @@
     height: 100%;
 }
 
+.txn-payment-response {
+    max-height: 311px !important;
+    height: 100%;
+}
+
 .txn-asa-transfer-response {
     max-height: 372px !important;
     height: 100%;
@@ -20,7 +25,7 @@
 }
 
 .txn-optin-response {
-    max-height: 283px !important;
+    max-height: 250px !important;
     height: 100%;
 }
 
@@ -90,4 +95,8 @@
 
 .from-dropdown {
     display: block;
+}
+
+.interactive-example button {
+    width: 100%;
 }

@@ -10,6 +10,10 @@ This section will cover a common dev flow to request the user's public wallet da
 
 To integrate MyAlgo Connect to your webapp, first you need to integrate the MyAlgo Connect library into your project by installing it with Node Package Management:
 
+```jsx
+npm install @randlabs/myalgo-connect
+```
+
 ### Get user’s wallet (only public data)
 
 Once the MyAlgo Connect library is integrated, you are ready to interact with the user.
@@ -38,7 +42,11 @@ There are two options to create transactions accepted by MyAlgo Connect:
 
 ```jsx
 import algosdk from "algosdk";
- 
+  
+const algodClient = new algosdk.Algodv2("",'https://api.testnet.algoexplorer.io', '');
+
+const params = await algodClient.getTransactionParams().do();
+
 const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
   suggestedParams: {
       ...params,
@@ -53,7 +61,7 @@ const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
 Once you have created the transaction, it can be signed by the user by simply sending it to MyAlgo Connect. To do so use the following line of code: 
 
 ```jsx
-const signedTxn = await myAlgoWallet.signTransaction(txn.toByte());
+const signedTxn = await myAlgoConnect.signTransaction(txn.toByte());
 ```
 
 ### Send Transactions to the Network

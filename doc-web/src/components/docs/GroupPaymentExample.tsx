@@ -133,7 +133,7 @@ export default function GroupTransaction(): JSX.Element {
     }
 
     return (
-        <div>
+        <div className="interactive-example">
             <Nav tabs>
                 <NavItem>
                     <NavLink
@@ -167,7 +167,7 @@ export default function GroupTransaction(): JSX.Element {
                         </Col>
                         <Col xs="12" lg="6" className="mt-2 mt-xs-2">
                             <Label className="tx-label">
-                                Response
+                                signTransaction() Response
                             </Label>
                             <div className="response-base txn-group-response">
                                 <PrismCode
@@ -182,13 +182,13 @@ export default function GroupTransaction(): JSX.Element {
                                 block
                                 disabled={!response}
                                 onClick={() => setResponse("")}>
-                                Clear Response
+                                Clear Method Response
                             </Button>
                         </Col>
                     </Row>
                 </TabPane>
                 <TabPane tabId="2">
-                    <div className="mt-4"> The following codes allow you to create and sent to MyAlgo Connect 2 transactions grouped to be sign by the user. There are two alternatives to make it. Pick the one you prefere</div>
+                    <div className="mt-4"> The following codes allow you to create and sent to MyAlgo Connect 2 transactions grouped to be sign by the user. There are two alternatives to make it. Pick the one you prefere.</div>
                     <Row className="mt-3">
                         <Col>
                             <Label className="tx-label">
