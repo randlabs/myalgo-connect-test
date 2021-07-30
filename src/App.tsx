@@ -1,105 +1,85 @@
-import React, { Component, Fragment, ReactNode } from 'react';
-import { Container, Row, Col } from 'reactstrap';
-import MyAlgo, { Accounts } from '@randlabs/myalgo-connect';
+import { Accounts } from '@randlabs/myalgo-connect';
+import algosdk from "algosdk";
+import { Fragment, useEffect, useState } from 'react';
+import { Col, Container, Row } from 'reactstrap';
+import Footer from './components/bars/Footer';
+import Navbar from './components/bars/Navbar';
+import Connect from './components/Connect';
+import AppCloseOut from './components/operations/ApplCloseOut';
+import AppOptIn from './components/operations/ApplOptIn';
+import AsaTransfer from './components/operations/AsaTransfer';
+import Payment from './components/operations/Payment';
+import GroupTransaction from './components/operations/GroupTransaction';
+import SignTeal from './components/operations/Signteal';
+import ApplCreate from './components/operations/ApplCreate';
+import ApplDelete from './components/operations/ApplDelete';
+import ApplUpdate from './components/operations/ApplUpdate';
+import GroupWithTeal from './components/operations/GroupWithTeal';
+import AccountsProvider from "./context/accountsContext";
+import ParamsProvider from "./context/paramsContext";
+import { algodClient, connection } from './utils/connections';
 
 import './App.scss';
 
-import Navbar from './components/navbar/Navbar';
-import Connect from './components/connect/Connect';
-import Payment from './components/payment/Payment';
-import PaymentRekeyed from './components/payment-rekeyed/payment-rekeyed';
-import MultisigPayment from './components/multisig-payment/multisig-payment';
-import ASATransfer from './components/asatransfer/asatransfer';
-import SignTeal from './components/signteal/signteal';
-import ApplOptIn from './components/applOptin/applOptin';
-import ApplCallNoOp from "./components/applCallNoOp/applCallNoOp";
-import ApplCloseOut from './components/applCloseOut/applCloseOut';
-//import logo from './assets/images/MyAlgo.svg';
-import Footer from './components/footer/Footer';
+let timeoutResolution: NodeJS.Timeout | null = null;
 
+export default function App(): JSX.Element {
 
-interface IAppState {
-    accounts: Accounts[];
-}
+    const [params, setParams] = useState<algosdk.SuggestedParams>();
+    const [accounts, setAccounts] = useState<Accounts[]>([]);
 
-class App extends Component<{}, IAppState> {
-    private connection: MyAlgo;
+    const onCompleteConnect = (accounts: Accounts[]): void => {
+        setAccounts(accounts);
+    };
 
-    constructor(props: {}) {
-        super(props);
-
-        this.state = {
-            accounts: []
+    const getTransactionParams = async (): Promise<void> => {
+        try {
+            const params = await algodClient.getTransactionParams().do();
+            setParams(params);
         }
-
-        this.connection = new MyAlgo();
-
-        this.onCompleteConnect = this.onCompleteConnect.bind(this);
+        catch (err) {
+            console.error(err);
+        }
+        timeoutResolution = setTimeout(getTransactionParams, 10000);
     }
 
-    onCompleteConnect(accounts: Accounts[]): void {
-        this.setState({
-            accounts
-        })
-    }
+    useEffect(() => {
+        if (timeoutResolution)
+            clearTimeout(timeoutResolution);
+        getTransactionParams();
+    }, [ accounts ])
 
-    render(): ReactNode {
-        const { accounts } = this.state;
-
-        return (
-            <Fragment>
-                <Navbar />
-                <Container className="main-container" fluid>
-                    <Row className="main-row">
-                        <Col>
-                            <Connect
-                                connection={this.connection}
-                                onComplete={this.onCompleteConnect}
-                            />
-                            {
-                                accounts.length > 0
-                                ? <Fragment>
-                                    <Payment
-                                        connection={this.connection}
-                                        accounts={accounts}
-                                    />
-                                    {/* <PaymentRekeyed
-                                        connection={this.connection}
-                                        accounts={accounts}
-                                    /> */}
-                                    <MultisigPayment
-                                        connection={this.connection}
-                                        accounts={accounts}
-                                    />
-                                    <SignTeal
-                                        connection={this.connection}
-                                        accounts={accounts}
-                                    />
-                                    <ASATransfer
-                                        connection={this.connection}
-                                        accounts={accounts}
-                                    />
-                                    <ApplOptIn
-                                        connection={this.connection}
-                                        accounts={accounts}
-                                    />
-                                    <ApplCallNoOp
-                                        connection={this.connection}
-                                        accounts={accounts}
-                                    />
-                                    <ApplCloseOut
-                                        connection={this.connection}
-                                        accounts={accounts}
-                                    />
-                                </Fragment> : null
-                            }
-                        </Col>
-                    </Row>
-                </Container>
-                <Footer />
-            </Fragment>
-        );
-    }
+    return (
+        <Fragment>
+            <Navbar />
+            <Container className="main-container" fluid>
+                <Row className="main-row">
+                    <Col>
+                        <Connect
+                            connection={connection}
+                            onComplete={onCompleteConnect}
+                        />
+                        {
+                            accounts.length > 0 && params &&
+                            <ParamsProvider params={params}>
+                                <AccountsProvider accounts={accounts}>
+                                    <Payment />
+                                    <GroupWithTeal />
+                                    <AsaTransfer />
+                                    <AppOptIn />
+                                    <AppCloseOut />
+                                    <SignTeal />
+                                    <GroupTransaction />
+                                    <ApplCreate />
+                                    <ApplDelete />
+                                    <ApplUpdate />
+                                </AccountsProvider>
+                            </ParamsProvider>
+                        }
+                    </Col>
+                </Row>
+            </Container>
+            <Footer />
+        </Fragment>
+    );
 }
-
-export default App;

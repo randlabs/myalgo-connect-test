@@ -1,0 +1,88 @@
+.align-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.txn-payment-response {
+    max-height: 356px !important;
+    height: 100%;
+}
+
+.txn-asa-transfer-response {
+    max-height: 427px !important;
+    height: 100%;
+}
+
+.txn-group-payment-response {
+    max-height: 209px !important;
+    height: 100%;
+}
+
+.txn-optin-response {
+    max-height: 283px !important;
+    height: 100%;
+}
+
+.txn-appl-update-response{
+    max-height: 112px !important;
+    height: 100%;
+}
+
+.txn-group-response {
+    max-height: 332px !important;
+    height: 100%;
+}
+
+.txn-appl-create-response {
+    max-height: 332px !important;
+    height: 100%;
+}
+
+.txn-appl-delete-response {
+    max-height: 112px !important;
+    height: 100%;
+}
+
+.button-margin {
+    margin-top: 10px;
+}
+
+.code-box {
+    height: 100%;
+    max-height: 466px;
+    margin: 0px !important;
+}
+
+.code-connect {
+    height: 100%;
+    max-height: 197px !important;
+}
+
+.nav-link {
+    color: #212529;
+}
+
+.active-tab {
+    color: #245ec7 !important;
+}
+
+@media (max-width: 1004px) {
+    .mt-xs-2 {
+        margin-top: 30px !important;
+    }
+
+    .mt-xs-4 {
+        margin-top: 50px !important;
+    }
+}
+
+@media (max-width: 992px) {
+    .tab-pane .row, .connect-content {
+        display: inherit !important;
+    }
+
+    .response-base {
+        height: 150px;
+    }
+}

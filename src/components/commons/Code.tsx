@@ -34,7 +34,7 @@ class Code extends Component<ICodeProps> {
         const { code, plugins, language } = this.props
         
         return (
-            <pre className={!plugins ? "" : plugins.join(" ")}>
+            <pre className={`code-box ${!plugins ? "" : plugins.join(" ")}`}>
                 <code ref={this.ref} className={`language-${language}`}>
                 {code.trim()}
                 </code>
