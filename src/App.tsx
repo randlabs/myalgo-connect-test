@@ -47,7 +47,7 @@ export default function App(): JSX.Element {
         if (timeoutResolution)
             clearTimeout(timeoutResolution);
         getTransactionParams();
-    }, [accounts])
+    }, [ accounts ])
 
     return (
         <Fragment>
