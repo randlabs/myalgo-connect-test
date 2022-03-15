@@ -3,7 +3,7 @@ import MyAlgoConnect from '@randlabs/myalgo-connect';
 
 
 const connection = new MyAlgoConnect();
-const algodClient = new algosdk.Algodv2('', 'https://api.testnet.algoexplorer.io', '');
+const algodClient = new algosdk.Algodv2('', 'https://node.testnet.algoexplorerapi.io', '');
 
 export {
     connection,
