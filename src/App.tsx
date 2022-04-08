@@ -20,6 +20,7 @@ import ParamsProvider from "./context/paramsContext";
 import { algodClient, connection } from './utils/connections';
 
 import './App.scss';
+import SignerOverride from './components/operations/SignerOverride';
 
 let timeoutResolution: NodeJS.Timeout | null = null;
 
@@ -73,6 +74,7 @@ export default function App(): JSX.Element {
                                     <ApplCreate />
                                     <ApplDelete />
                                     <ApplUpdate />
+                                    <SignerOverride />
                                 </AccountsProvider>
                             </ParamsProvider>
                         }
