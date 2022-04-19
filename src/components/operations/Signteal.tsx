@@ -90,7 +90,7 @@ export default function SignTeal(): JSX.Element {
             setTxn(txn);
             setTeal(compiledTeal.result);
         }
-        catch (err) {
+        catch (err: any) {
             setResponse(JSON.stringify(err, null, 4));
         }
     }

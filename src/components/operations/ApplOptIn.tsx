@@ -73,7 +73,7 @@ export default function AppOptIn(): JSX.Element {
 
             setResponse(response);
         }
-        catch (err) {
+        catch (err: any) {
             console.error(err);
             setResponse(err.message);
         }

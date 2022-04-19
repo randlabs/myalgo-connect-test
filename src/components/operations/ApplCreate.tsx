@@ -90,7 +90,7 @@ export default function AppCreate(): JSX.Element {
 
             setResponse(response);
         }
-        catch (err) {
+        catch (err: any) {
             console.error(err);
             setResponse(err.message);
         }

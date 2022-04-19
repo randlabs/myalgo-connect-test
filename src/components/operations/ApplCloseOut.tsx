@@ -72,7 +72,7 @@ export default function AppCloseOut(): JSX.Element {
 
             setResponse(response);
         }
-        catch (err) {
+        catch (err: any) {
             console.error(err);
             setResponse(err.message);
         }
