@@ -6,7 +6,7 @@ import { ParamsContext } from "../../context/paramsContext";
 import { algodClient, connection } from '../../utils/connections';
 import AppIndex from "../commons/AppIndex";
 import PrismCode from '../commons/Code';
-import SenderDropdown from "../commons/FromDropdown";
+import AddressDropdown from "../commons/AddressDropdown";
 import Note from "../commons/Note";
 import "./all.scss";
 
@@ -72,7 +72,7 @@ export default function AppCloseOut(): JSX.Element {
 
             setResponse(response);
         }
-        catch (err) {
+        catch (err: any) {
             console.error(err);
             setResponse(err.message);
         }
@@ -107,7 +107,7 @@ export default function AppCloseOut(): JSX.Element {
                     <Row className="mt-3">
                         <Col xs="12" lg="6" className="mt-2">
                             <Form id="payment-tx" onSubmit={onSubmitCloseOutTx}>
-                                <SenderDropdown onSelectSender={setSender} />
+                                <AddressDropdown onSelectSender={setSender} />
                                 <AppIndex onChangeAppIndex={setAppIndex} />
                                 <Note onChangeNote={setNote} />
                                 <Button color="primary" block type="submit">

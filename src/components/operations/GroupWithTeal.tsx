@@ -3,7 +3,7 @@ import { Button, Col, Container, Form, Label, Nav, NavItem, NavLink, Row, TabCon
 import algosdk from "algosdk";
 import { ParamsContext } from "../../context/paramsContext";
 import { AccountsContext } from "../../context/accountsContext";
-import SenderDropdown from "../commons/FromDropdown";
+import AddressDropdown from "../commons/AddressDropdown";
 import Note from "../commons/Note";
 import { algodClient, connection } from "../../utils/connections";
 import PrismCode from '../commons/Code';
@@ -113,7 +113,7 @@ export default function GroupWithTeal(): JSX.Element {
 
             setResponse(response);
         }
-        catch (err) {
+        catch (err: any) {
             console.error(err);
             setResponse(err.message);
         }
@@ -148,7 +148,7 @@ export default function GroupWithTeal(): JSX.Element {
                     <Row className="mt-3">
                         <Col xs="12" lg="6" className="mt-2">
                             <Form id="payment-tx" onSubmit={onClickSubmit}>
-                                <SenderDropdown onSelectSender={setSender} />
+                                <AddressDropdown onSelectSender={setSender} />
                                 <Note onChangeNote={setNote} />
                                 <Button color="primary" block type="submit">
                                     Submit

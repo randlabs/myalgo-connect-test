@@ -3,12 +3,13 @@ import React, { useState, useContext, Fragment, ReactElement, MouseEvent, useEff
 import { Dropdown, DropdownItem, DropdownMenu, DropdownToggle, FormGroup, Label } from "reactstrap";
 import { AccountsContext } from "../../context/accountsContext";
 
-interface SenderDropdownProps {
+interface AddressDropdownProps {
     disabled?: boolean;
     onSelectSender(sender: string): void;
+    title?: string;
 }
 
-export default function SenderDropdown(props: SenderDropdownProps): JSX.Element {
+export default function AddressDropdown(props: AddressDropdownProps): JSX.Element {
     const accounts = useContext(AccountsContext);
     const [ sender, setSender ] = useState(accounts[0]);
     const [ isOpen, openDropdown ] = useState(false);
@@ -26,7 +27,7 @@ export default function SenderDropdown(props: SenderDropdownProps): JSX.Element 
     return <Fragment>
         <FormGroup className="align-items-center">
             <Label className="tx-label">
-                From
+                <span>{ props.title || 'From' }</span>
             </Label>
             <Dropdown
                 disabled={props.disabled}

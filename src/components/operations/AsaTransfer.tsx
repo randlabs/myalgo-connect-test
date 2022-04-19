@@ -3,7 +3,7 @@ import { Button, Col, Container, Form, Label, Nav, NavItem, NavLink, Row, TabCon
 import Note from "../commons/Note";
 import Address from "../commons/Address";
 import Amount from "../commons/Amount";
-import SenderDropdown from "../commons/FromDropdown";
+import AddressDropdown from "../commons/AddressDropdown";
 import PrismCode from '../commons/Code';
 import algosdk from "algosdk";
 import { ParamsContext } from "../../context/paramsContext";
@@ -82,7 +82,7 @@ export default function AsaTransfer(): JSX.Element {
 
             setResponse(response);
         }
-        catch (err) {
+        catch (err: any) {
             console.error(err);
             setResponse(err.message);
         }
@@ -117,7 +117,7 @@ export default function AsaTransfer(): JSX.Element {
                     <Row className="mt-3">
                         <Col xs="12" lg="6" className="mt-2">
                             <Form id="payment-tx" onSubmit={onSubmitAsaTransferTx}>
-                                <SenderDropdown onSelectSender={setSender} />
+                                <AddressDropdown onSelectSender={setSender} />
                                 <Address label="To" onChangeAddress={setReceiver} />
                                 <Amount amount={amount} decimals={8} onChangeAmount={setAmount} />
                                 <AssetIndex assetIndex={assetIndex} disabled={true} onChangeAssetIndex={setAssetIndex} />

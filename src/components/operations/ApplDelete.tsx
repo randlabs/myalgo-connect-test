@@ -6,7 +6,7 @@ import { ParamsContext } from "../../context/paramsContext";
 import { algodClient, connection } from '../../utils/connections';
 import AppIndex from "../commons/AppIndex";
 import PrismCode from '../commons/Code';
-import SenderDropdown from "../commons/FromDropdown";
+import AddressDropdown from "../commons/AddressDropdown";
 import "./all.scss";
 
 const codeV1 = `
@@ -68,7 +68,7 @@ export default function AppDelete(): JSX.Element {
 
             setResponse(response);
         }
-        catch (err) {
+        catch (err: any) {
             console.error(err);
             setResponse(err.message);
         }
@@ -103,7 +103,7 @@ export default function AppDelete(): JSX.Element {
                     <Row className="mt-3">
                         <Col xs="12" lg="6" className="mt-2">
                             <Form id="payment-tx" onSubmit={onSubmitDeleteApplTx}>
-                                <SenderDropdown onSelectSender={setSender} />
+                                <AddressDropdown onSelectSender={setSender} />
                                 <AppIndex onChangeAppIndex={setAppIndex} />
                                 <Button color="primary" block type="submit">
                                     Submit

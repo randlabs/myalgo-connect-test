@@ -1,4 +1,4 @@
-import React, { useState, FormEvent, useContext } from "react";
+import React, { useState, FormEvent, useContext, Fragment } from "react";
 import { Button, Col, Container, Form, Label, Nav, NavItem, NavLink, Row, TabContent, TabPane } from "reactstrap";
 import Note from "../commons/Note";
 import Address from "../commons/Address";
@@ -42,12 +42,13 @@ const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
 const signedTxn = await connection.signTransaction(txn.toByte());
 `;
 
-export default function Payment(): JSX.Element {
+export default function SignerOverride(): JSX.Element {
     const params = useContext(ParamsContext);
     const accounts = useContext(AccountsContext);
 
     const [note, setNote] = useState<Uint8Array | undefined>();
-    const [sender, setSender] = useState(accounts[0].address);
+    const [signer, setSigner] = useState(accounts[0].address);
+    const [sender, setSender] = useState("");
     const [receiver, setReceiver] = useState("");
     const [amount, setAmount] = useState(0);
     const [response, setResponse] = useState("");
@@ -74,7 +75,7 @@ export default function Payment(): JSX.Element {
                 amount: algosdk.algosToMicroalgos(amount),
             });
 
-            const signedTxn = await connection.signTransaction(txn.toByte());
+            const signedTxn = await connection.signTransaction(txn.toByte(), { overrideSigner: signer });
             const response = await algodClient.sendRawTransaction(signedTxn.blob).do();
 
             setResponse(response);
@@ -85,11 +86,15 @@ export default function Payment(): JSX.Element {
         }
     }
 
+    if (accounts.length < 2) {
+        return (<Fragment />);
+    }
+
     return <Container className="mt-5 pb-5">
         <Row className="mt-4">
             <Col>
-                <h1>Payment transaction</h1>
-                <p>Make a payment transaction</p>
+                <h1>Payment transaction - Override Signer</h1>
+                <p>Make a payment transaction specifying a signer to override the sender</p>
             </Col>
         </Row>
         <div>
@@ -114,7 +119,8 @@ export default function Payment(): JSX.Element {
                     <Row className="mt-3">
                         <Col xs="12" lg="6" className="mt-2">
                             <Form id="payment-tx" onSubmit={onSubmitPaymentTx}>
-                                <AddressDropdown onSelectSender={setSender} />
+                                <AddressDropdown title="Signer" onSelectSender={setSigner} />
+                                <Address label="From" onChangeAddress={setSender} />
                                 <Address label="To" onChangeAddress={setReceiver} />
                                 <Amount amount={amount} onChangeAmount={setAmount} />
                                 <Note onChangeNote={setNote} />

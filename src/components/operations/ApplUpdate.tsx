@@ -4,7 +4,7 @@ import { Button, Col, Container, Form, Label, Nav, NavItem, NavLink, Row, TabCon
 import { AccountsContext } from "../../context/accountsContext";
 import { ParamsContext } from "../../context/paramsContext";
 import { algodClient, connection } from "../../utils/connections";
-import SenderDropdown from "../commons/FromDropdown";
+import AddressDropdown from "../commons/AddressDropdown";
 import AppIndex from "../commons/AppIndex";
 import PrismCode from '../commons/Code';
 
@@ -78,7 +78,7 @@ export default function AppUpdate(): JSX.Element {
 
             setResponse(response);
         }
-        catch (err) {
+        catch (err: any) {
             console.error(err);
             setResponse(err.message);
         }
@@ -113,7 +113,7 @@ export default function AppUpdate(): JSX.Element {
                     <Row className="mt-3">
                         <Col xs="12" lg="6" className="mt-2">
                             <Form id="payment-tx" onSubmit={onSubmitUpdateAppl}>
-                                <SenderDropdown onSelectSender={setSender} />
+                                <AddressDropdown onSelectSender={setSender} />
                                 <AppIndex disabled={true} value={appIndex.toString()} onChangeAppIndex={() => {}}/>
                                 <Button color="primary" block type="submit">
                                     Submit

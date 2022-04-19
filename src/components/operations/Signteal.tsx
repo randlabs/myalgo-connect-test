@@ -4,7 +4,7 @@ import { ParamsContext } from "../../context/paramsContext";
 import { AccountsContext } from "../../context/accountsContext";
 import Address from "../commons/Address";
 import Amount from "../commons/Amount";
-import SenderDropdown from "../commons/FromDropdown";
+import AddressDropdown from "../commons/AddressDropdown";
 import Note from "../commons/Note";
 import PrismCode from '../commons/Code';
 import algosdk from "algosdk";
@@ -90,7 +90,7 @@ export default function SignTeal(): JSX.Element {
             setTxn(txn);
             setTeal(compiledTeal.result);
         }
-        catch (err) {
+        catch (err: any) {
             setResponse(JSON.stringify(err, null, 4));
         }
     }
@@ -146,7 +146,7 @@ export default function SignTeal(): JSX.Element {
                 <Row className="mt-3">
                     <Col xs="12" lg="6" className="mt-2">
                             <Form id="payment-tx" onSubmit={onPrepareTransaction}>
-                                <SenderDropdown onSelectSender={setSender} disabled={!!preparedTxn}/>
+                                <AddressDropdown onSelectSender={setSender} disabled={!!preparedTxn}/>
                                 <Address label="To" onChangeAddress={setReceiver} disabled={!!preparedTxn}/>
                                 <Amount amount={amount} onChangeAmount={setAmount} disabled={!!preparedTxn}/>
                                 <Note onChangeNote={setNote} disabled={!!preparedTxn}/>

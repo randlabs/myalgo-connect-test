@@ -2,7 +2,7 @@ import React, { useState, FormEvent, useContext } from "react";
 import { Button, Col, Container, Form, Label, Nav, NavItem, NavLink, Row, TabContent, TabPane } from "reactstrap";
 import Address from "../commons/Address";
 import Amount from "../commons/Amount";
-import SenderDropdown from "../commons/FromDropdown";
+import AddressDropdown from "../commons/AddressDropdown";
 import PrismCode from '../commons/Code';
 import algosdk from "algosdk";
 import { ParamsContext } from "../../context/paramsContext";
@@ -122,7 +122,7 @@ export default function GroupTransaction(): JSX.Element {
 
             setResponse(response);
         }
-        catch (err) {
+        catch (err: any) {
             console.error(err);
             setResponse(err.message);
         }
@@ -157,7 +157,7 @@ export default function GroupTransaction(): JSX.Element {
                     <Row className="mt-3">
                         <Col xs="12" lg="6" className="mt-2">
                             <Form id="payment-tx" onSubmit={onSubmitGroupTxns}>
-                                <SenderDropdown onSelectSender={setSender} />
+                                <AddressDropdown onSelectSender={setSender} />
                                 <Address label="To for Transaction 1" onChangeAddress={setReceiver1} />
                                 <Amount amount={amount1} label="Amount for Transaction 1" onChangeAmount={setAmount1} />
                                 <Address label="To for Transaction 2" onChangeAddress={setReceiver2} />
