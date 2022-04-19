@@ -1,5 +1,6 @@
-import React, { useState, FormEvent, useContext } from "react";
+import React, { useState, FormEvent, useContext, Fragment } from "react";
 import { Button, Col, Container, Form, Label, Nav, NavItem, NavLink, Row, TabContent, TabPane } from "reactstrap";
+import Note from "../commons/Note";
 import Address from "../commons/Address";
 import Amount from "../commons/Amount";
 import AddressDropdown from "../commons/AddressDropdown";
@@ -11,70 +12,45 @@ import { AccountsContext } from "../../context/accountsContext";
 import "./all.scss";
 
 const codeV1 = `
-const txn1: any = {
+const txn: any = {
     ...params,
     fee: 1000,
     flatFee: true,
     type: "pay",
     from: sender,
-    to: receiver1,
-    amount: amount
+    to: receiver,
+    amount: 1000000, // 1 Algo
+    note: new Uint8Array(Buffer.from("...")),
 };
 
-const txn2: any = {
-    ...params,
-    fee: 1000,
-    flatFee: true,
-    type: "pay",
-    from: sender,
-    to: receiver2,
-    amount: amount
-};
-
-const txnsArray = [ txn1, txn2 ];
-const groupID = algosdk.computeGroupID(txnsArray)
-for (let i = 0; i < 2; i++) txnsArray[i].group = groupID;
-const signedTxns = await connection.signTransaction(txnsArray);
+const signedTxn = await connection.signTransaction(txn);
 `;
 
 const codeV2 = `
-const txn1 = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
     suggestedParams: {
         ...params,
         fee: 1000,
         flatFee: true,
     },
     from: sender,
-    to: receiver1, 
-    amount: amount1
+    to: receiver, 
+    amount: 1000000, // 1 Algo
+    note: note
 });
 
-const txn2 = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    suggestedParams: {
-        ...params,
-        fee: 1000,
-        flatFee: true,
-    },
-    from: sender,
-    to: receiver2, 
-    amount: amount2
-});
-
-const txnsArray = [ txn1, txn2 ];
-const groupID = algosdk.computeGroupID(txnsArray)
-for (let i = 0; i < 2; i++) txnsArray[i].group = groupID;
-const signedTxns = await connection.signTransaction(txnsArray.map(txn => txn.toByte()));
+const signedTxn = await connection.signTransaction(txn.toByte());
 `;
 
-export default function GroupTransaction(): JSX.Element {
+export default function SignerOverride(): JSX.Element {
     const params = useContext(ParamsContext);
     const accounts = useContext(AccountsContext);
 
-    const [sender, setSender] = useState(accounts[0].address);
-    const [receiver1, setReceiver1] = useState("");
-    const [receiver2, setReceiver2] = useState("");
-    const [amount1, setAmount1] = useState(0);
-    const [amount2, setAmount2] = useState(0);
+    const [note, setNote] = useState<Uint8Array | undefined>();
+    const [signer, setSigner] = useState(accounts[0].address);
+    const [sender, setSender] = useState("");
+    const [receiver, setReceiver] = useState("");
+    const [amount, setAmount] = useState(0);
     const [response, setResponse] = useState("");
     const [activeTab, setActiveTab] = useState('1');
 
@@ -82,43 +58,25 @@ export default function GroupTransaction(): JSX.Element {
         if (activeTab !== tab) setActiveTab(tab);
     }
 
-    const onSubmitGroupTxns = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
+    const onSubmitPaymentTx = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
         event.preventDefault();
 
         try {
-            if (!params || sender.length === 0 || receiver1.length === 0 || receiver2.length === 0) return;
+            if (!params || sender.length === 0 || receiver.length === 0) return;
 
-            const txn1 = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+            const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
                 suggestedParams: {
                     ...params,
                     fee: 1000,
                     flatFee: true,
                 },
                 from: sender,
-                to: receiver1,
-                amount: algosdk.algosToMicroalgos(amount1),
+                to: receiver, note,
+                amount: algosdk.algosToMicroalgos(amount),
             });
 
-            const txn2 = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-                suggestedParams: {
-                    ...params,
-                    fee: 1000,
-                    flatFee: true,
-                },
-                from: sender,
-                to: receiver2,
-                amount: algosdk.algosToMicroalgos(amount2),
-            });
-
-            const txArr = [ txn1, txn2 ];
-            const groupID = algosdk.computeGroupID(txArr);
-
-            for (let i = 0; i < 2; i++) {
-              txArr[i].group = groupID;
-            }
-
-            const signedTxns = await connection.signTransaction(txArr.map(txn => txn.toByte()));
-            const response = await algodClient.sendRawTransaction(signedTxns.map(tx => tx.blob)).do();
+            const signedTxn = await connection.signTransaction(txn.toByte(), { overrideSigner: signer });
+            const response = await algodClient.sendRawTransaction(signedTxn.blob).do();
 
             setResponse(response);
         }
@@ -128,11 +86,15 @@ export default function GroupTransaction(): JSX.Element {
         }
     }
 
-    return <Container className="mt-5">
+    if (accounts.length < 2) {
+        return (<Fragment />);
+    }
+
+    return <Container className="mt-5 pb-5">
         <Row className="mt-4">
             <Col>
-                <h1>Group transaction</h1>
-                <p>Make two atomic transactions</p>
+                <h1>Payment transaction - Override Signer</h1>
+                <p>Make a payment transaction specifying a signer to override the sender</p>
             </Col>
         </Row>
         <div>
@@ -156,12 +118,12 @@ export default function GroupTransaction(): JSX.Element {
                 <TabPane tabId="1">
                     <Row className="mt-3">
                         <Col xs="12" lg="6" className="mt-2">
-                            <Form id="payment-tx" onSubmit={onSubmitGroupTxns}>
-                                <AddressDropdown onSelectSender={setSender} />
-                                <Address label="To for Transaction 1" onChangeAddress={setReceiver1} />
-                                <Amount amount={amount1} label="Amount for Transaction 1" onChangeAmount={setAmount1} />
-                                <Address label="To for Transaction 2" onChangeAddress={setReceiver2} />
-                                <Amount amount={amount2} label="Amount for Transaction 2"  onChangeAmount={setAmount2} />
+                            <Form id="payment-tx" onSubmit={onSubmitPaymentTx}>
+                                <AddressDropdown title="Signer" onSelectSender={setSigner} />
+                                <Address label="From" onChangeAddress={setSender} />
+                                <Address label="To" onChangeAddress={setReceiver} />
+                                <Amount amount={amount} onChangeAmount={setAmount} />
+                                <Note onChangeNote={setNote} />
                                 <Button color="primary" block type="submit">
                                     Submit
                                 </Button>
@@ -171,7 +133,7 @@ export default function GroupTransaction(): JSX.Element {
                             <Label className="tx-label">
                                 Response
                             </Label>
-                            <div className="response-base txn-group-response">
+                            <div className="txn-payment-response">
                                 <PrismCode
                                     code={response ? JSON.stringify(response, null, 1) : ""}
                                     language="js"

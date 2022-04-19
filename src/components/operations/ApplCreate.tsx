@@ -6,7 +6,7 @@ import { ParamsContext } from "../../context/paramsContext";
 import { algodClient, connection } from '../../utils/connections';
 import Integer from "../commons/Integer";
 import PrismCode from '../commons/Code';
-import SenderDropdown from "../commons/FromDropdown";
+import AddressDropdown from "../commons/AddressDropdown";
 import "./all.scss";
 
 const codeV1 = `
@@ -125,7 +125,7 @@ export default function AppCreate(): JSX.Element {
                     <Row className="mt-3">
                         <Col xs="12" lg="6" className="mt-2">
                             <Form id="payment-tx" onSubmit={onSubmitCreateAppl}>
-                                <SenderDropdown onSelectSender={setSender} />
+                                <AddressDropdown onSelectSender={setSender} />
                                 <Integer label="Local Bytes" onChangeNumber={setLocalBytes} />
                                 <Integer label="Global Bytes" onChangeNumber={setGlobalBytes} />
                                 <Integer label="Local Int" onChangeNumber={setLocalInt} />
