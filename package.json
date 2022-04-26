@@ -1,8 +1,8 @@
 {
   "name": "myalgo-connect-test",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "dependencies": {
-    "@randlabs/myalgo-connect": "^1.1.3",
+    "@randlabs/myalgo-connect": "git+https://github.com/randlabs/myalgo-connect.git#tealSign",
     "@testing-library/jest-dom": "^5.11.9",
     "@testing-library/react": "^11.2.5",
     "@testing-library/user-event": "^12.8.1",

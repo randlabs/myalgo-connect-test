@@ -21,6 +21,7 @@ import { algodClient, connection } from './utils/connections';
 
 import './App.scss';
 import SignerOverride from './components/operations/SignerOverride';
+import TealSign from './components/operations/TealSign';
 
 let timeoutResolution: NodeJS.Timeout | null = null;
 
@@ -75,6 +76,7 @@ export default function App(): JSX.Element {
                                     <ApplDelete />
                                     <ApplUpdate />
                                     <SignerOverride />
+                                    <TealSign />
                                 </AccountsProvider>
                             </ParamsProvider>
                         }
