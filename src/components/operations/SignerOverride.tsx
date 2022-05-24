@@ -119,7 +119,7 @@ export default function SignerOverride(): JSX.Element {
                     <Row className="mt-3">
                         <Col xs="12" lg="6" className="mt-2">
                             <Form id="payment-tx" onSubmit={onSubmitPaymentTx}>
-                                <AddressDropdown title="Signer" onSelectSender={setSigner} />
+                                <AddressDropdown label="Signer" onSelectSender={setSigner} />
                                 <Address label="From" onChangeAddress={setSender} />
                                 <Address label="To" onChangeAddress={setReceiver} />
                                 <Amount amount={amount} onChangeAmount={setAmount} />

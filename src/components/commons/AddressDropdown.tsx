@@ -1,12 +1,12 @@
 import { Accounts } from "@randlabs/myalgo-connect";
-import React, { useState, useContext, Fragment, ReactElement, MouseEvent, useEffect } from "react";
+import React, { Fragment, MouseEvent, ReactElement, useContext, useState } from "react";
 import { Dropdown, DropdownItem, DropdownMenu, DropdownToggle, FormGroup, Label } from "reactstrap";
 import { AccountsContext } from "../../context/accountsContext";
 
 interface AddressDropdownProps {
     disabled?: boolean;
     onSelectSender(sender: string): void;
-    title?: string;
+    label?: string;
 }
 
 export default function AddressDropdown(props: AddressDropdownProps): JSX.Element {
@@ -27,7 +27,7 @@ export default function AddressDropdown(props: AddressDropdownProps): JSX.Elemen
     return <Fragment>
         <FormGroup className="align-items-center">
             <Label className="tx-label">
-                <span>{ props.title || 'From' }</span>
+                <span>{ props.label || 'From' }</span>
             </Label>
             <Dropdown
                 disabled={props.disabled}

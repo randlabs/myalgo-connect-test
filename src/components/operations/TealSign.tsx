@@ -1,5 +1,7 @@
+import algosdk from "algosdk";
 import React, { FormEvent, useContext, useState } from "react";
 import { Button, Col, Container, Form, Label, Nav, NavItem, NavLink, Row, TabContent, TabPane } from "reactstrap";
+import nacl from "tweetnacl";
 import { AccountsContext } from "../../context/accountsContext";
 import { connection } from '../../utils/connections';
 import Address from "../commons/Address";
@@ -25,6 +27,7 @@ export default function TealSign(): JSX.Element {
     const [contractAddress, setContractAddress] = useState("");
     const [response, setResponse] = useState("");
     const [activeTab, setActiveTab] = useState('1');
+    const [verificationResult, setVerificationResult] = useState<boolean | undefined>();
 
     const toggle = (tab: React.SetStateAction<string>) => {
         if (activeTab !== tab) setActiveTab(tab);
@@ -45,6 +48,25 @@ export default function TealSign(): JSX.Element {
             setResponse(err.message);
         }
     }
+
+    const clearResponse = (): void => {
+        setResponse("");
+        setVerificationResult(undefined);
+    }
+
+    const verifyResponse = async (): Promise<void> => {
+        const contractPk = algosdk.decodeAddress(contractAddress).publicKey;
+        const signerPk = algosdk.decodeAddress(signer).publicKey;
+
+        const expected = Buffer.concat([
+            Buffer.from('ProgData', 'ascii'),
+            Buffer.from(contractPk),
+            Buffer.from(data)
+        ]);
+
+        const verified = nacl.sign.detached.verify(expected, Buffer.from(response, 'base64'), signerPk);
+        setVerificationResult(verified);
+    } 
 
     return <Container className="mt-5 pb-5">
         <Row className="mt-4">
@@ -75,9 +97,9 @@ export default function TealSign(): JSX.Element {
                     <Row className="mt-3">
                         <Col xs="12" lg="6" className="mt-2">
                             <Form id="payment-tx" onSubmit={onSubmit}>
-                                <AddressDropdown onSelectSender={setSigner} />
-                                <Address label="To" onChangeAddress={setContractAddress} />
-                                <Note onChangeNote={setData} />
+                                <AddressDropdown label="Signer" onSelectSender={setSigner} />
+                                <Address label="Contract Address" onChangeAddress={setContractAddress} />
+                                <Note label="Data to sign" onChangeNote={setData} />
                                 <Button color="primary" block type="submit">
                                     Submit
                                 </Button>
@@ -99,9 +121,26 @@ export default function TealSign(): JSX.Element {
                                 color="primary"
                                 block
                                 disabled={!response}
-                                onClick={() => setResponse("")}>
+                                onClick={() => clearResponse()}>
                                 Clear Response
                             </Button>
+
+                            <Button
+                                className="button-margin"
+                                color="primary"
+                                block
+                                disabled={!response}
+                                onClick={() => verifyResponse()}>
+                                Verify response
+                            </Button>
+
+                            {response && (verificationResult===true) && (
+                                <Label className="tx-label">Verification: Ok!</Label>
+                            )}
+
+                            {response && (verificationResult===false) && (
+                                <Label className="tx-label">Verification: Not Ok!</Label>
+                            )}
                         </Col>
                     </Row>
                 </TabPane>

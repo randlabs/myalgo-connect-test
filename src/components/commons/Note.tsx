@@ -4,6 +4,7 @@ import { FormGroup, Input, Label } from "reactstrap";
 interface NoteProps {
     disabled?: boolean;
     onChangeNote(note: Uint8Array): void;
+    label?: string;
 }
 
 export default function Note(props: NoteProps): JSX.Element {
@@ -17,12 +18,12 @@ export default function Note(props: NoteProps): JSX.Element {
     return <Fragment>
         <FormGroup>
             <Label className="tx-label">
-                Note
+                {props.label || "Note"}
             </Label>
             <Input
                 className="tx-input note"
                 type="textarea"
-                placeholder="Note"
+                placeholder={props.label || "Note"}
                 value={note}
                 onChange={onChangeNote}
                 disabled={props.disabled}
