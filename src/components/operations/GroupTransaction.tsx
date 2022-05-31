@@ -75,6 +75,8 @@ export default function GroupTransaction(): JSX.Element {
     const [receiver2, setReceiver2] = useState("");
     const [amount1, setAmount1] = useState(0);
     const [amount2, setAmount2] = useState(0);
+    const [fee1, setFee1] = useState(algosdk.microalgosToAlgos(1000));
+    const [fee2, setFee2] = useState(algosdk.microalgosToAlgos(1000));
     const [response, setResponse] = useState("");
     const [activeTab, setActiveTab] = useState('1');
 
@@ -91,7 +93,7 @@ export default function GroupTransaction(): JSX.Element {
             const txn1 = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
                 suggestedParams: {
                     ...params,
-                    fee: 1000,
+                    fee: algosdk.algosToMicroalgos(fee1),
                     flatFee: true,
                 },
                 from: sender,
@@ -102,7 +104,7 @@ export default function GroupTransaction(): JSX.Element {
             const txn2 = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
                 suggestedParams: {
                     ...params,
-                    fee: 1000,
+                    fee: algosdk.algosToMicroalgos(fee2),
                     flatFee: true,
                 },
                 from: sender,
@@ -158,10 +160,15 @@ export default function GroupTransaction(): JSX.Element {
                         <Col xs="12" lg="6" className="mt-2">
                             <Form id="payment-tx" onSubmit={onSubmitGroupTxns}>
                                 <AddressDropdown onSelectSender={setSender} />
+
                                 <Address label="To for Transaction 1" onChangeAddress={setReceiver1} />
                                 <Amount amount={amount1} label="Amount for Transaction 1" onChangeAmount={setAmount1} />
+                                <Amount amount={fee1} label="Fee for Transaction 1" onChangeAmount={setFee1} />
+
                                 <Address label="To for Transaction 2" onChangeAddress={setReceiver2} />
                                 <Amount amount={amount2} label="Amount for Transaction 2"  onChangeAmount={setAmount2} />
+                                <Amount amount={fee2} label="Fee for Transaction 1" onChangeAmount={setFee2} />
+
                                 <Button color="primary" block type="submit">
                                     Submit
                                 </Button>
