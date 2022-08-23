@@ -1,84 +1,47 @@
-import React, { useState, FormEvent, useContext, Fragment } from "react";
+import algosdk from "algosdk";
+import React, { FormEvent, useContext, useState } from "react";
 import { Button, Col, Container, Form, Label, Nav, NavItem, NavLink, Row, TabContent, TabPane } from "reactstrap";
-import Note from "../commons/Note";
+import nacl from "tweetnacl";
+import { AccountsContext } from "../../context/accountsContext";
+import { connection } from '../../utils/connections';
 import Address from "../commons/Address";
-import Amount from "../commons/Amount";
 import AddressDropdown from "../commons/AddressDropdown";
 import PrismCode from '../commons/Code';
-import algosdk from "algosdk";
-import { ParamsContext } from "../../context/paramsContext";
-import { connection, algodClient } from '../../utils/connections';
-import { AccountsContext } from "../../context/accountsContext";
+import Note from "../commons/Note";
 import "./all.scss";
 
 const codeV1 = `
-const txn: any = {
-    ...params,
-    fee: 1000,
-    flatFee: true,
-    type: "pay",
-    from: sender,
-    to: receiver,
-    amount: 1000000, // 1 Algo
-    note: new Uint8Array(Buffer.from("...")),
-};
+const signer = '...'
+const data = Buffer.from(...)
+const contractAddress = '...'
 
-const signedTxn = await connection.signTransaction(txn);
+const signature = await connection.tealSign(data, contractAddress, signer);
 `;
 
-const codeV2 = `
-const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    suggestedParams: {
-        ...params,
-        fee: 1000,
-        flatFee: true,
-    },
-    from: sender,
-    to: receiver, 
-    amount: 1000000, // 1 Algo
-    note: note
-});
 
-const signedTxn = await connection.signTransaction(txn.toByte());
-`;
-
-export default function SignerOverride(): JSX.Element {
-    const params = useContext(ParamsContext);
+export default function TealSign(): JSX.Element {
     const accounts = useContext(AccountsContext);
 
-    const [note, setNote] = useState<Uint8Array | undefined>();
     const [signer, setSigner] = useState(accounts[0].address);
-    const [sender, setSender] = useState("");
-    const [receiver, setReceiver] = useState("");
-    const [amount, setAmount] = useState(0);
+    const [data, setData] = useState<Uint8Array>(new Uint8Array([]));
+    const [contractAddress, setContractAddress] = useState("");
     const [response, setResponse] = useState("");
     const [activeTab, setActiveTab] = useState('1');
+    const [verificationResult, setVerificationResult] = useState<boolean | undefined>();
 
     const toggle = (tab: React.SetStateAction<string>) => {
         if (activeTab !== tab) setActiveTab(tab);
     }
 
-    const onSubmitPaymentTx = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
+    const onSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
         event.preventDefault();
 
         try {
-            if (!params || sender.length === 0 || receiver.length === 0) return;
+            if (signer.length === 0 || contractAddress.length === 0 || (data.length === 0)) return;
 
-            const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-                suggestedParams: {
-                    ...params,
-                    fee: 1000,
-                    flatFee: true,
-                },
-                from: sender,
-                to: receiver, note,
-                amount: algosdk.algosToMicroalgos(amount),
-            });
+            const signature = await connection.tealSign(data, contractAddress, signer)
 
-            const signedTxn = await connection.signTransaction(txn.toByte(), { overrideSigner: signer });
-            const response = await algodClient.sendRawTransaction(signedTxn.blob).do();
-
-            setResponse(response);
+            setResponse(Buffer.from(signature).toString('base64'));
         }
         catch (err: any) {
             console.error(err);
@@ -86,15 +49,30 @@ export default function SignerOverride(): JSX.Element {
         }
     }
 
-    if (accounts.length < 2) {
-        return (<Fragment />);
+    const clearResponse = (): void => {
+        setResponse("");
+        setVerificationResult(undefined);
     }
+
+    const verifyResponse = async (): Promise<void> => {
+        const contractPk = algosdk.decodeAddress(contractAddress).publicKey;
+        const signerPk = algosdk.decodeAddress(signer).publicKey;
+
+        const expected = Buffer.concat([
+            Buffer.from('ProgData', 'ascii'),
+            Buffer.from(contractPk),
+            Buffer.from(data)
+        ]);
+
+        const verified = nacl.sign.detached.verify(expected, Buffer.from(response, 'base64'), signerPk);
+        setVerificationResult(verified);
+    } 
 
     return <Container className="mt-5 pb-5">
         <Row className="mt-4">
             <Col>
-                <h1>Payment transaction - Override Signer</h1>
-                <p>Make a payment transaction specifying a signer to override the sender</p>
+                <h1>Teal Signature</h1>
+                <p>Sign data to verify in a TEAL program</p>
             </Col>
         </Row>
         <div>
@@ -118,12 +96,10 @@ export default function SignerOverride(): JSX.Element {
                 <TabPane tabId="1">
                     <Row className="mt-3">
                         <Col xs="12" lg="6" className="mt-2">
-                            <Form id="payment-tx" onSubmit={onSubmitPaymentTx}>
+                            <Form id="payment-tx" onSubmit={onSubmit}>
                                 <AddressDropdown label="Signer" onSelectSender={setSigner} />
-                                <Address label="From" onChangeAddress={setSender} />
-                                <Address label="To" onChangeAddress={setReceiver} />
-                                <Amount amount={amount} onChangeAmount={setAmount} />
-                                <Note onChangeNote={setNote} />
+                                <Address label="Contract Address" onChangeAddress={setContractAddress} />
+                                <Note label="Data to sign" onChangeNote={setData} />
                                 <Button color="primary" block type="submit">
                                     Submit
                                 </Button>
@@ -145,26 +121,34 @@ export default function SignerOverride(): JSX.Element {
                                 color="primary"
                                 block
                                 disabled={!response}
-                                onClick={() => setResponse("")}>
+                                onClick={() => clearResponse()}>
                                 Clear Response
                             </Button>
+
+                            <Button
+                                className="button-margin"
+                                color="primary"
+                                block
+                                disabled={!response}
+                                onClick={() => verifyResponse()}>
+                                Verify response
+                            </Button>
+
+                            {response && (verificationResult===true) && (
+                                <Label className="tx-label">Verification: Ok!</Label>
+                            )}
+
+                            {response && (verificationResult===false) && (
+                                <Label className="tx-label">Verification: Not Ok!</Label>
+                            )}
                         </Col>
                     </Row>
                 </TabPane>
                 <TabPane tabId="2">
                     <Row className="mt-3">
-                        <Col xs="12" lg="6">
-                            <Label className="tx-label">
-                                Using Algosdk (Recommended)
-                            </Label>
-                            <PrismCode
-                                code={codeV2}
-                                language="js"
-                            />
-                        </Col>
                         <Col xs="12" lg="6" className="mt-xs-4">
                             <Label className="tx-label">
-                                Another alternative
+                                Code
                             </Label>
                             <PrismCode
                                 code={codeV1}
