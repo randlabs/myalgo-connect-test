@@ -1,7 +1,6 @@
 import { isValidAddress } from "algosdk";
-import React, { Fragment, useState, ChangeEvent } from "react";
-import MaskedInput from "react-text-mask";
-import { FormFeedback, FormGroup, Label } from "reactstrap";
+import { ChangeEvent, Fragment, useState } from "react";
+import { FormFeedback, FormGroup, Input, Label } from "reactstrap";
 
 interface AddressProps {
     label: string;
@@ -35,7 +34,7 @@ export default function Address(props: AddressProps): JSX.Element {
             <Label className="tx-label">
                 {props.label}
             </Label>
-            <MaskedInput
+            <Input
                 className={className}
                 mask={addressMask}
                 value={address}

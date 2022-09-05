@@ -22,6 +22,7 @@ import { algodClient, connection } from './utils/connections';
 import './App.scss';
 import SignerOverride from './components/operations/SignerOverride';
 import TealSign from './components/operations/TealSign';
+import SignBytes from './components/operations/SignBytes';
 
 let timeoutResolution: NodeJS.Timeout | null = null;
 
@@ -77,6 +78,7 @@ export default function App(): JSX.Element {
                                     <ApplUpdate />
                                     <SignerOverride />
                                     <TealSign />
+                                    <SignBytes />
                                 </AccountsProvider>
                             </ParamsProvider>
                         }
