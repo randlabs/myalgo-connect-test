@@ -1,12 +1,10 @@
 import algosdk from "algosdk";
 import React, { FormEvent, useContext, useState } from "react";
 import { Button, Col, Container, Form, Label, Nav, NavItem, NavLink, Row, TabContent, TabPane } from "reactstrap";
-import { AccountsContext } from "../../context/accountsContext";
-import { ParamsContext } from "../../context/paramsContext";
-import { algodClient, connection } from '../../utils/connections';
+import { AppContext, IAppContext } from "../../context/appContext";
+import AddressDropdown from "../commons/AddressDropdown";
 import AppIndex from "../commons/AppIndex";
 import PrismCode from '../commons/Code';
-import AddressDropdown from "../commons/AddressDropdown";
 import "./all.scss";
 
 const codeV1 = `
@@ -36,10 +34,10 @@ const signedTxn = await connection.signTransaction(txn.toByte());
 `;
 
 export default function AppDelete(): JSX.Element {
-    const params = useContext(ParamsContext);
-    const accounts = useContext(AccountsContext);
+    const context: IAppContext = useContext(AppContext);
+
     const [appIndex, setAppIndex] = useState("17140470");
-    const [sender, setSender] = useState(accounts[0].address);
+    const [sender, setSender] = useState(context.accounts[0].address);
     const [response, setResponse] = useState("");
     const [activeTab, setActiveTab] = useState('1');
 
@@ -51,7 +49,9 @@ export default function AppDelete(): JSX.Element {
         event.preventDefault();
 
         try {
-            if (!params || sender.length === 0 || !appIndex) return;
+            if (sender.length === 0 || !appIndex) return;
+
+            const params = await context.algodClient.getTransactionParams().do();
 
             const txn = algosdk.makeApplicationDeleteTxnFromObject({
                 suggestedParams: {
@@ -63,8 +63,8 @@ export default function AppDelete(): JSX.Element {
                 appIndex: parseInt(appIndex),
             });
 
-            const signedTxn = await connection.signTransaction(txn.toByte());
-            const response = await algodClient.sendRawTransaction(signedTxn.blob).do();
+            const signedTxn = await context.connection.signTransaction(txn);
+            const response = await context.algodClient.sendRawTransaction(signedTxn).do();
 
             setResponse(response);
         }

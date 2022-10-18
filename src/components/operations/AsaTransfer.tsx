@@ -1,16 +1,14 @@
-import React, { useState, FormEvent, useContext } from "react";
-import { Button, Col, Container, Form, Label, Nav, NavItem, NavLink, Row, TabContent, TabPane } from "reactstrap";
-import Note from "../commons/Note";
-import Address from "../commons/Address";
-import Amount from "../commons/Amount";
-import AddressDropdown from "../commons/AddressDropdown";
-import PrismCode from '../commons/Code';
 import algosdk from "algosdk";
-import { ParamsContext } from "../../context/paramsContext";
-import { connection, algodClient } from '../../utils/connections';
-import { AccountsContext } from "../../context/accountsContext";
-import "./all.scss";
+import React, { FormEvent, useContext, useState } from "react";
+import { Button, Col, Container, Form, Label, Nav, NavItem, NavLink, Row, TabContent, TabPane } from "reactstrap";
+import { AppContext, IAppContext } from "../../context/appContext";
+import Address from "../commons/Address";
+import AddressDropdown from "../commons/AddressDropdown";
+import Amount from "../commons/Amount";
 import AssetIndex from "../commons/AssetId";
+import PrismCode from '../commons/Code';
+import Note from "../commons/Note";
+import "./all.scss";
 
 const algoSdkCode = `
 const txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
@@ -44,11 +42,10 @@ const signedTxn = await connection.signTransaction(txn);
 `;
 
 export default function AsaTransfer(): JSX.Element {
-    const params = useContext(ParamsContext);
-    const accounts = useContext(AccountsContext);
+    const context: IAppContext = useContext(AppContext);
 
     const [note, setNote] = useState<Uint8Array | undefined>();
-    const [sender, setSender] = useState(accounts[0].address);
+    const [sender, setSender] = useState(context.accounts[0].address);
     const [receiver, setReceiver] = useState("");
     const [amount, setAmount] = useState(0);
     const [assetIndex, setAssetIndex] = useState(12400859);
@@ -63,7 +60,9 @@ export default function AsaTransfer(): JSX.Element {
         event.preventDefault();
        
         try {
-            if (!params || sender.length === 0 || receiver.length === 0) return;
+            if (sender.length === 0 || receiver.length === 0) return;
+
+            const params = await context.algodClient.getTransactionParams().do();
 
             const txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
                 suggestedParams: {
@@ -77,8 +76,8 @@ export default function AsaTransfer(): JSX.Element {
                 assetIndex: assetIndex
             });
 
-            const signedTxn = await connection.signTransaction(txn.toByte());
-            const response = await algodClient.sendRawTransaction(signedTxn.blob).do();
+            const signedTxn = await context.connection.signTransaction(txn);
+            const response = await context.algodClient.sendRawTransaction(signedTxn).do();
 
             setResponse(response);
         }

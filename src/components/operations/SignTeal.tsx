@@ -1,15 +1,13 @@
+import algosdk from "algosdk";
 import React, { FormEvent, MouseEvent, useContext, useState } from "react";
 import { Button, Col, Container, Form, Label, Nav, NavItem, NavLink, Row, TabContent, TabPane } from "reactstrap";
-import { ParamsContext } from "../../context/paramsContext";
-import { AccountsContext } from "../../context/accountsContext";
+import { AppContext, IAppContext } from "../../context/appContext";
+import { algodClient } from "../../utils/connections";
 import Address from "../commons/Address";
-import Amount from "../commons/Amount";
 import AddressDropdown from "../commons/AddressDropdown";
-import Note from "../commons/Note";
+import Amount from "../commons/Amount";
 import PrismCode from '../commons/Code';
-import algosdk from "algosdk";
-import { algodClient, connection } from "../../utils/connections";
-
+import Note from "../commons/Note";
 
 const codeV2 =
 `
@@ -52,11 +50,10 @@ byte b32 $REPLACE_FOR_TXID
 `
 
 export default function SignTeal(): JSX.Element {
-    const params = useContext(ParamsContext);
-    const accounts = useContext(AccountsContext);
+    const context: IAppContext = useContext(AppContext);
 
     const [note, setNote] = useState<Uint8Array | undefined>();
-    const [sender, setSender] = useState(accounts[0].address);
+    const [sender, setSender] = useState(context.accounts[0].address);
     const [receiver, setReceiver] = useState("");
     const [amount, setAmount] = useState(0);
     const [response, setResponse] = useState("");
@@ -71,8 +68,10 @@ export default function SignTeal(): JSX.Element {
     const onPrepareTransaction = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
         event.preventDefault();
         try {
-            if (!params || sender.length === 0 || receiver.length === 0) return;
+            if (sender.length === 0 || receiver.length === 0) return;
     
+            const params = await context.algodClient.getTransactionParams().do();
+
             const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
                 suggestedParams: {
                     ...params,
@@ -100,17 +99,19 @@ export default function SignTeal(): JSX.Element {
         try {
             if (preparedTxn === null || teal.length === 0) return;
     
-            const lsig = algosdk.makeLogicSig(new Uint8Array(Buffer.from(teal, "base64")));
+            const logic = new Uint8Array(Buffer.from(teal, "base64"));
+
+            const lsig = new algosdk.LogicSigAccount(logic);
+            lsig.lsig.sig = await context.connection.signLogicSig(logic, sender);
     
-            lsig.sig = await connection.signLogicSig(lsig.logic, sender);
+            const signedTxn = algosdk.signLogicSigTransaction(preparedTxn, lsig.lsig);
     
-            const signedTxn = algosdk.signLogicSigTransaction(preparedTxn, lsig);
-    
-            const response = await algodClient.sendRawTransaction(signedTxn.blob).do();
+            const response = await context.algodClient.sendRawTransaction(signedTxn.blob).do();
     
             setResponse(response);
         }
         catch (err) {
+            console.error(err);
             setResponse(JSON.stringify(err, null, 4));
         }
         setTxn(null);

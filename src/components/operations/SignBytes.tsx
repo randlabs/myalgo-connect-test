@@ -1,8 +1,7 @@
 import algosdk from "algosdk";
 import React, { FormEvent, useContext, useState } from "react";
 import { Button, Col, Container, Form, Label, Nav, NavItem, NavLink, Row, TabContent, TabPane } from "reactstrap";
-import { AccountsContext } from "../../context/accountsContext";
-import { connection } from '../../utils/connections';
+import { AppContext, IAppContext } from "../../context/appContext";
 import AddressDropdown from "../commons/AddressDropdown";
 import PrismCode from '../commons/Code';
 import Note from "../commons/Note";
@@ -17,9 +16,9 @@ const signature = await connection.signBytes(bytes, signer);
 
 
 export default function SignBytes(): JSX.Element {
-    const accounts = useContext(AccountsContext);
+    const context: IAppContext = useContext(AppContext);
 
-    const [signer, setSigner] = useState(accounts[0].address);
+    const [signer, setSigner] = useState(context.accounts[0].address);
     const [bytes, setBytes] = useState<Uint8Array>(new Uint8Array([]));
     const [response, setResponse] = useState("");
     const [activeTab, setActiveTab] = useState('1');
@@ -35,7 +34,7 @@ export default function SignBytes(): JSX.Element {
         try {
             if (signer.length === 0 || bytes.length === 0) return;
 
-            const signature = await connection.signBytes(bytes, signer)
+            const signature = await context.connection.signBytes(bytes, signer)
 
             setResponse(Buffer.from(signature).toString('base64'));
         }

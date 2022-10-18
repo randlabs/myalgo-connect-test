@@ -1,7 +1,8 @@
 import { Accounts } from "@randlabs/myalgo-connect";
-import React, { Fragment, MouseEvent, ReactElement, useContext, useState } from "react";
-import { Dropdown, DropdownItem, DropdownMenu, DropdownToggle, FormGroup, Label } from "reactstrap";
-import { AccountsContext } from "../../context/accountsContext";
+import { Fragment, useContext, useState } from "react";
+import { FormGroup, Label } from "reactstrap";
+import { AppContext } from "../../context/appContext";
+import GenericDropDown from "./Dropdown";
 
 interface AddressDropdownProps {
     disabled?: boolean;
@@ -10,14 +11,9 @@ interface AddressDropdownProps {
 }
 
 export default function AddressDropdown(props: AddressDropdownProps): JSX.Element {
-    const accounts = useContext(AccountsContext);
-    const [ sender, setSender ] = useState(accounts[0]);
-    const [ isOpen, openDropdown ] = useState(false);
+    const { accounts } = useContext(AppContext);
 
-    const onToggleSender = (event: MouseEvent) => {
-        event.preventDefault();
-        openDropdown(!isOpen);
-    }
+    const [ sender, setSender ] = useState(accounts[0]);
 
     const onSelectSender = (account: Accounts) => {
         setSender(account);
@@ -29,33 +25,14 @@ export default function AddressDropdown(props: AddressDropdownProps): JSX.Elemen
             <Label className="tx-label">
                 <span>{ props.label || 'From' }</span>
             </Label>
-            <Dropdown
+            <GenericDropDown
                 disabled={props.disabled}
-                className="from-dropdown"
-                isOpen={isOpen}
-                toggle={onToggleSender}
-            >
-                <DropdownToggle caret disabled={props.disabled}>
-                    <span className="text-ellipsis">
-                        {sender.name}
-                    </span>
-                </DropdownToggle>
-                <DropdownMenu>
-                    {accounts.map((account): ReactElement => {
-                        return (
-                            <DropdownItem
-                                onClick={() => onSelectSender(account)}
-                                key={`account-${account.address}`}
-                            >
-                                <span className="text-ellipsis">
-                                    {account.name}
-                                </span>
-                            </DropdownItem>
-                        );
-                    })
-                    }
-                </DropdownMenu>
-            </Dropdown>
+                values={accounts}
+                valueKey={a => a.address}
+                valueLabel={a => a.name}
+                selectedValue={sender}
+                onChange={onSelectSender}
+            />
         </FormGroup>
     </Fragment>
 }

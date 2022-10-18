@@ -1,56 +1,46 @@
 import { Accounts } from '@randlabs/myalgo-connect';
-import algosdk from "algosdk";
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useState } from 'react';
 import { Col, Container, Row } from 'reactstrap';
+import './App.scss';
 import Footer from './components/bars/Footer';
 import Navbar from './components/bars/Navbar';
+import SignatureMethodSelector from './components/commons/SignatureMethodSelector';
 import Connect from './components/Connect';
 import AppCloseOut from './components/operations/ApplCloseOut';
-import AppOptIn from './components/operations/ApplOptIn';
-import AsaTransfer from './components/operations/AsaTransfer';
-import Payment from './components/operations/Payment';
-import GroupTransaction from './components/operations/GroupTransaction';
-import SignTeal from './components/operations/Signteal';
 import ApplCreate from './components/operations/ApplCreate';
 import ApplDelete from './components/operations/ApplDelete';
+import AppOptIn from './components/operations/ApplOptIn';
 import ApplUpdate from './components/operations/ApplUpdate';
+import AsaTransfer from './components/operations/AsaTransfer';
+import GroupTransaction from './components/operations/GroupTransaction';
 import GroupWithTeal from './components/operations/GroupWithTeal';
-import AccountsProvider from "./context/accountsContext";
-import ParamsProvider from "./context/paramsContext";
+import Payment from './components/operations/Payment';
+import SignBytes from './components/operations/SignBytes';
+import SignerOverride from './components/operations/SignerOverride';
+import SignTeal from './components/operations/SignTeal';
+import TealSign from './components/operations/TealSign';
+import AppContext, { Connector, IAppContext, SignatureMethod } from "./context/appContext";
 import { algodClient, connection } from './utils/connections';
 
-import './App.scss';
-import SignerOverride from './components/operations/SignerOverride';
-import TealSign from './components/operations/TealSign';
-import SignBytes from './components/operations/SignBytes';
-
-let timeoutResolution: NodeJS.Timeout | null = null;
-
 export default function App(): JSX.Element {
-
-    const [params, setParams] = useState<algosdk.SuggestedParams>();
-    const [accounts, setAccounts] = useState<Accounts[]>([]);
+    const [context, setContext] = useState<IAppContext>({
+        connection: new Connector(connection),
+        algodClient,
+        accounts: [],
+        signatureMethod: 'legacy'
+    });
 
     const onCompleteConnect = (accounts: Accounts[]): void => {
-        setAccounts(accounts);
+        setContext({ ...context, accounts });
     };
 
-    const getTransactionParams = async (): Promise<void> => {
-        try {
-            const params = await algodClient.getTransactionParams().do();
-            setParams(params);
-        }
-        catch (err) {
-            console.error(err);
-        }
-        timeoutResolution = setTimeout(getTransactionParams, 10000);
-    }
-
-    useEffect(() => {
-        if (timeoutResolution)
-            clearTimeout(timeoutResolution);
-        getTransactionParams();
-    }, [ accounts ])
+    const onSignatureMethodChange = (signatureMethod: SignatureMethod): void => {
+        setContext({
+            ...context,
+            signatureMethod,
+            connection: new Connector(connection, signatureMethod)
+        });
+    };
 
     return (
         <Fragment>
@@ -62,25 +52,27 @@ export default function App(): JSX.Element {
                             connection={connection}
                             onComplete={onCompleteConnect}
                         />
+                        <SignatureMethodSelector
+                            value={context.signatureMethod}
+                            onChange={onSignatureMethodChange}
+                        />
                         {
-                            accounts.length > 0 && params &&
-                            <ParamsProvider params={params}>
-                                <AccountsProvider accounts={accounts}>
-                                    <Payment />
-                                    <GroupWithTeal />
-                                    <AsaTransfer />
-                                    <AppOptIn />
-                                    <AppCloseOut />
-                                    <SignTeal />
-                                    <GroupTransaction />
-                                    <ApplCreate />
-                                    <ApplDelete />
-                                    <ApplUpdate />
-                                    <SignerOverride />
-                                    <TealSign />
-                                    <SignBytes />
-                                </AccountsProvider>
-                            </ParamsProvider>
+                            context.accounts.length > 0 &&
+                            <AppContext context={context}>
+                                <Payment />
+                                <GroupWithTeal />
+                                <AsaTransfer />
+                                <AppOptIn />
+                                <AppCloseOut />
+                                <SignTeal />
+                                <GroupTransaction />
+                                <ApplCreate />
+                                <ApplDelete />
+                                <ApplUpdate />
+                                <SignerOverride />
+                                <TealSign />
+                                <SignBytes />
+                            </AppContext>
                         }
                     </Col>
                 </Row>

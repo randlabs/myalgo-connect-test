@@ -2,8 +2,7 @@ import algosdk from "algosdk";
 import React, { FormEvent, useContext, useState } from "react";
 import { Button, Col, Container, Form, Label, Nav, NavItem, NavLink, Row, TabContent, TabPane } from "reactstrap";
 import nacl from "tweetnacl";
-import { AccountsContext } from "../../context/accountsContext";
-import { connection } from '../../utils/connections';
+import { AppContext, IAppContext } from "../../context/appContext";
 import Address from "../commons/Address";
 import AddressDropdown from "../commons/AddressDropdown";
 import PrismCode from '../commons/Code';
@@ -20,9 +19,9 @@ const signature = await connection.tealSign(data, contractAddress, signer);
 
 
 export default function TealSign(): JSX.Element {
-    const accounts = useContext(AccountsContext);
+    const context: IAppContext = useContext(AppContext);
 
-    const [signer, setSigner] = useState(accounts[0].address);
+    const [signer, setSigner] = useState(context.accounts[0].address);
     const [data, setData] = useState<Uint8Array>(new Uint8Array([]));
     const [contractAddress, setContractAddress] = useState("");
     const [response, setResponse] = useState("");
@@ -39,7 +38,7 @@ export default function TealSign(): JSX.Element {
         try {
             if (signer.length === 0 || contractAddress.length === 0 || (data.length === 0)) return;
 
-            const signature = await connection.tealSign(data, contractAddress, signer)
+            const signature = await context.connection.tealSign(data, contractAddress, signer)
 
             setResponse(Buffer.from(signature).toString('base64'));
         }

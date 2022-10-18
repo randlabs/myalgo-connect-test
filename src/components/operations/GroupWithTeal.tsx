@@ -1,15 +1,12 @@
-import React, { useState, useContext, FormEvent } from "react";
-import { Button, Col, Container, Form, Label, Nav, NavItem, NavLink, Row, TabContent, TabPane } from "reactstrap";
 import algosdk from "algosdk";
-import { ParamsContext } from "../../context/paramsContext";
-import { AccountsContext } from "../../context/accountsContext";
+import React, { FormEvent, useContext, useState } from "react";
+import { Button, Col, Container, Form, Label, Nav, NavItem, NavLink, Row, TabContent, TabPane } from "reactstrap";
+import { AppContext, IAppContext } from "../../context/appContext";
 import AddressDropdown from "../commons/AddressDropdown";
-import Note from "../commons/Note";
-import { algodClient, connection } from "../../utils/connections";
 import PrismCode from '../commons/Code';
+import Note from "../commons/Note";
 
 const program = new Uint8Array(Buffer.from("AiACAgAyBCISMwEIIxIQMwAIIxIQMwAHMwEAEhAzAQczAAASEDMBIDIDEhAzASAyAxIQMwEJMgMSEDMAIDIDEhAzACAyAxIQMwAJMgMSEA==", "base64"));
-
 
 const codeV2 =
 `
@@ -69,11 +66,10 @@ const signedTx2 = algosdk.signLogicSigTransaction(txs[1], lsig);
 
 
 export default function GroupWithTeal(): JSX.Element {
-    const params = useContext(ParamsContext);
-    const accounts = useContext(AccountsContext);
+    const context: IAppContext = useContext(AppContext);
 
     const [note, setNote] = useState<Uint8Array | undefined>();
-    const [sender, setSender] = useState(accounts[0].address);
+    const [sender, setSender] = useState(context.accounts[0].address);
     const [response, setResponse] = useState("");
     const [activeTab, setActiveTab] = useState('1');
 
@@ -85,7 +81,9 @@ export default function GroupWithTeal(): JSX.Element {
         e.preventDefault();
 
         try {
-            if (!params || sender.length === 0) return;
+            if (sender.length === 0) return;
+
+            const params = await context.algodClient.getTransactionParams().do();
 
             const lsig = algosdk.makeLogicSig(program);
     
@@ -106,10 +104,10 @@ export default function GroupWithTeal(): JSX.Element {
             });
         
             const txs = algosdk.assignGroupID([ tx1, tx2 ]);
-            const signedTx1 = await connection.signTransaction(txs[0].toByte());
+            const signedTx1 = await context.connection.signTransaction(txs[0]);
             const signedTx2 = algosdk.signLogicSigTransaction(txs[1], lsig);
 
-            const response = await algodClient.sendRawTransaction([ signedTx1.blob, signedTx2.blob ]).do();
+            const response = await context.algodClient.sendRawTransaction([ signedTx1[0], signedTx2.blob ]).do();
 
             setResponse(response);
         }

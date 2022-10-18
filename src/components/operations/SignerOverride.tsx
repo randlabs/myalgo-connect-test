@@ -1,14 +1,13 @@
-import React, { useState, FormEvent, useContext, Fragment } from "react";
-import { Button, Col, Container, Form, Label, Nav, NavItem, NavLink, Row, TabContent, TabPane } from "reactstrap";
-import Note from "../commons/Note";
-import Address from "../commons/Address";
-import Amount from "../commons/Amount";
-import AddressDropdown from "../commons/AddressDropdown";
-import PrismCode from '../commons/Code';
 import algosdk from "algosdk";
-import { ParamsContext } from "../../context/paramsContext";
-import { connection, algodClient } from '../../utils/connections';
-import { AccountsContext } from "../../context/accountsContext";
+import React, { FormEvent, Fragment, useContext, useState } from "react";
+import { Button, Col, Container, Form, Label, Nav, NavItem, NavLink, Row, TabContent, TabPane } from "reactstrap";
+import { AppContext, IAppContext } from "../../context/appContext";
+import { connection } from "../../utils/connections";
+import Address from "../commons/Address";
+import AddressDropdown from "../commons/AddressDropdown";
+import Amount from "../commons/Amount";
+import PrismCode from '../commons/Code';
+import Note from "../commons/Note";
 import "./all.scss";
 
 const codeV1 = `
@@ -43,11 +42,10 @@ const signedTxn = await connection.signTransaction(txn.toByte());
 `;
 
 export default function SignerOverride(): JSX.Element {
-    const params = useContext(ParamsContext);
-    const accounts = useContext(AccountsContext);
+    const context: IAppContext = useContext(AppContext);
 
     const [note, setNote] = useState<Uint8Array | undefined>();
-    const [signer, setSigner] = useState(accounts[0].address);
+    const [signer, setSigner] = useState(context.accounts[0].address);
     const [sender, setSender] = useState("");
     const [receiver, setReceiver] = useState("");
     const [amount, setAmount] = useState(0);
@@ -62,7 +60,9 @@ export default function SignerOverride(): JSX.Element {
         event.preventDefault();
 
         try {
-            if (!params || sender.length === 0 || receiver.length === 0) return;
+            if (sender.length === 0 || receiver.length === 0) return;
+
+            const params = await context.algodClient.getTransactionParams().do();
 
             const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
                 suggestedParams: {
@@ -75,8 +75,9 @@ export default function SignerOverride(): JSX.Element {
                 amount: algosdk.algosToMicroalgos(amount),
             });
 
+            // this one is specific for a legacy signature method option
             const signedTxn = await connection.signTransaction(txn.toByte(), { overrideSigner: signer });
-            const response = await algodClient.sendRawTransaction(signedTxn.blob).do();
+            const response = await context.algodClient.sendRawTransaction(signedTxn.blob).do();
 
             setResponse(response);
         }
@@ -86,7 +87,7 @@ export default function SignerOverride(): JSX.Element {
         }
     }
 
-    if (accounts.length < 2) {
+    if (context.accounts.length < 2) {
         return (<Fragment />);
     }
 

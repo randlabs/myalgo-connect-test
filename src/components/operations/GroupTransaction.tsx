@@ -1,13 +1,11 @@
-import React, { useState, FormEvent, useContext } from "react";
-import { Button, Col, Container, Form, Label, Nav, NavItem, NavLink, Row, TabContent, TabPane } from "reactstrap";
-import Address from "../commons/Address";
-import Amount from "../commons/Amount";
-import AddressDropdown from "../commons/AddressDropdown";
-import PrismCode from '../commons/Code';
 import algosdk from "algosdk";
-import { ParamsContext } from "../../context/paramsContext";
-import { connection, algodClient } from '../../utils/connections';
-import { AccountsContext } from "../../context/accountsContext";
+import React, { FormEvent, useContext, useState } from "react";
+import { Button, Col, Container, Form, Label, Nav, NavItem, NavLink, Row, TabContent, TabPane } from "reactstrap";
+import { AppContext, IAppContext } from "../../context/appContext";
+import Address from "../commons/Address";
+import AddressDropdown from "../commons/AddressDropdown";
+import Amount from "../commons/Amount";
+import PrismCode from '../commons/Code';
 import "./all.scss";
 
 const codeV1 = `
@@ -67,10 +65,9 @@ const signedTxns = await connection.signTransaction(txnsArray.map(txn => txn.toB
 `;
 
 export default function GroupTransaction(): JSX.Element {
-    const params = useContext(ParamsContext);
-    const accounts = useContext(AccountsContext);
+    const context: IAppContext = useContext(AppContext);
 
-    const [sender, setSender] = useState(accounts[0].address);
+    const [sender, setSender] = useState(context.accounts[0].address);
     const [receiver1, setReceiver1] = useState("");
     const [receiver2, setReceiver2] = useState("");
     const [amount1, setAmount1] = useState(0);
@@ -88,7 +85,9 @@ export default function GroupTransaction(): JSX.Element {
         event.preventDefault();
 
         try {
-            if (!params || sender.length === 0 || receiver1.length === 0 || receiver2.length === 0) return;
+            if (sender.length === 0 || receiver1.length === 0 || receiver2.length === 0) return;
+
+            const params = await context.algodClient.getTransactionParams().do();
 
             const txn1 = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
                 suggestedParams: {
@@ -119,8 +118,8 @@ export default function GroupTransaction(): JSX.Element {
               txArr[i].group = groupID;
             }
 
-            const signedTxns = await connection.signTransaction(txArr.map(txn => txn.toByte()));
-            const response = await algodClient.sendRawTransaction(signedTxns.map(tx => tx.blob)).do();
+            const signedTxns = await context.connection.signTransaction(txArr);
+            const response = await context.algodClient.sendRawTransaction(signedTxns).do();
 
             setResponse(response);
         }
