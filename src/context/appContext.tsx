@@ -1,4 +1,4 @@
-import MyAlgoConnect, { Accounts } from "@randlabs/myalgo-connect";
+import MyAlgoConnect, { Accounts, WalletTransaction } from "@randlabs/myalgo-connect";
 import algosdk from "algosdk";
 import { createContext, PropsWithChildren } from "react";
 import { algodClient, connection } from "../utils/connections";
@@ -8,7 +8,7 @@ export type SignatureMethod = 'legacy' | 'arc-0001';
 export class Connector {
     constructor(
         private readonly connection: MyAlgoConnect,
-        private readonly method: SignatureMethod = 'legacy'
+        public readonly method: SignatureMethod = 'legacy'
     ) {
     }    
 
@@ -31,6 +31,11 @@ export class Connector {
                 .filter(st => Boolean(st))
                 .map(st => new Uint8Array(Buffer.from(st!, 'base64')))
         }
+    }
+
+    public async signTxns(wtxs: WalletTransaction[]): Promise<Uint8Array[]> {
+        const result = await this.connection.signTxns(wtxs);
+        return result.map(st => new Uint8Array(Buffer.from(st!, 'base64')));
     }
 
 	public async signLogicSig(logic: Uint8Array | string, address: string): Promise<Uint8Array> {

@@ -104,11 +104,24 @@ export default function GroupWithTeal(): JSX.Element {
             });
         
             const txs = algosdk.assignGroupID([ tx1, tx2 ]);
-            const signedTx1 = await context.connection.signTransaction(txs[0]);
             const signedTx2 = algosdk.signLogicSigTransaction(txs[1], lsig);
 
-            const response = await context.algodClient.sendRawTransaction([ signedTx1[0], signedTx2.blob ]).do();
+            let blobs;
+            if (context.connection.method === 'legacy') {
+                const signedTx1 = await context.connection.signTransaction(txs[0]);
+                blobs = [ signedTx1[0], signedTx2.blob ];
+            } else {
+                blobs = await context.connection.signTxns([
+                    { txn: Buffer.from(txs[0].toByte()).toString('base64') },
+                    {
+                        txn: Buffer.from(txs[1].toByte()).toString('base64'),
+                        stxn: Buffer.from(signedTx2.blob).toString('base64'),
+                        signers: []
+                    }
+                ]);
+            }
 
+            const response = await context.algodClient.sendRawTransaction(blobs).do();
             setResponse(response);
         }
         catch (err: any) {
@@ -121,7 +134,7 @@ export default function GroupWithTeal(): JSX.Element {
         <Row className="mt-4">
             <Col>
                 <h1>Group payment transaction</h1>
-                <p>Make a group payment transaction</p>
+                <p>Make a group payment transaction (pay tx + teal pay tx)</p>
             </Col>
         </Row>
         <div>
